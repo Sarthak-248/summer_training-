@@ -1,0 +1,42 @@
+[33mcommit 5a545542aaa4f36fece3e04da0986b97b1977b26[m
+Author: badalOraon-06 <btech10738.22@bitmesra.ac.in>
+Date:   Fri Jul 25 01:14:16 2025 +0530
+
+    feat: Add Razorpay payment integration and project documentation
+    
+    - Integrate Razorpay payment system for consultation fees
+    - Add payment controller with order creation and verification
+    - Update Doctor model with payment status fields
+    - Implement real-time payment notifications via Socket.IO
+    - Create comprehensive payment components for frontend
+    - Add payment status tracking and management
+    - Update appointment flow to include payment requirements
+    - Add[1;31m env[mironment template and comprehensive README
+    - Include Razorpay test guide for development
+    - Configure payment methods to avoid UPI issues in test mode
+    
+    NOTE: Remember to create [1;31m.env[m file from [1;31m.env[m.example template
+
+[33mcommit 64ba31e6ee05fa49beed2f175d357c66622bad3f[m
+Author: Badal Oraon <btech10738.22@bitmesra.ac.in>
+Date:   Thu Jun 5 13:07:19 2025 +0530
+
+    Add [1;31m.env[m to .gitignore
+
+[33mcommit 03088bb5dcb54bf075eba91084c29ccb8c534fc8[m
+Author: Badal Oraon <btech10738.22@bitmesra.ac.in>
+Date:   Thu Jun 5 12:57:28 2025 +0530
+
+    Add [1;31m.env[m to .gitignore
+
+[33mcommit 368198359fc41d8458d4cfabe3be9c12d95a0a8d[m
+Author: Badal Oraon <btech10738.22@bitmesra.ac.in>
+Date:   Thu Jun 5 02:50:17 2025 +0530
+
+    Recommit changes without [1;31m.env[m file
+
+[33mcommit c288dd9cb0acd96b355766ad8332f1a620e65e4e[m
+Author: Sarthak <cggkcj@gmail.com>
+Date:   Wed May 28 21:20:14 2025 +0530
+
+    Ignore m[1;31myenv[m[1;31m env[mironment folder

@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
+import path from "path";
+import { fileURLToPath } from "url";
 
 import express from "express";
 import mongoose from "mongoose";
@@ -74,7 +76,15 @@ app.use(cors());
 app.use(express.json());
 
 // Middleware to authenticate and populate req.user
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, "client/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/dist", "index.html"));
+});
 
 // Public routes (no token needed)
 app.use("/api/appointments" , patientRoutes);
