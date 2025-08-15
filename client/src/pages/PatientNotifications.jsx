@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:5000', {
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
+
+
+const socket = io(BACKEND_URL, {
   transports: ['websocket', 'polling'],
   timeout: 20000,
   forceNew: true
