@@ -312,7 +312,7 @@ const ScheduledAppointment = () => {
             className="relative bg-white/30 backdrop-blur-md border border-white/10 shadow-2xl rounded-3xl p-6 hover:scale-[1.02] transition-transform duration-300 hover:shadow-indigo-300"
           >
             {/* Status Badge - Top Right */}
-            <div className="absolute top-20 right-12 z-10">
+            <div className="absolute top-36 right-12 z-10">
               <span
                 className={`inline-block px-3 py-1 rounded-full text-sm font-semibold shadow-md ${statusBadge(
                   appt.status

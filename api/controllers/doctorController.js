@@ -248,16 +248,25 @@ export const updateAppointmentStatus = async (req, res) => {
     const io = req.app.get("io");
     const patientSockets = req.app.get("patientSockets");
     const patientId = appointment.patientRef?.toString();
-    const patientSocketId = patientSockets[patientId];
-    if (patientSocketId) {
-      io.to(patientSocketId).emit("appointmentStatus", {
-        status: appointment.status,
-        reason: appointment.reason,
-        doctorName: doctor.name,
-        appointmentTime: appointment.appointmentTime,
-        paymentRequired: status === 'Confirmed',
-        amount: appointment.amount,
+    const patientSocketIds = patientSockets[patientId];
+    
+    console.log('Sending notification to patient:', patientId);
+    console.log('Patient socket IDs:', patientSocketIds);
+    
+    if (patientSocketIds && patientSocketIds.length > 0) {
+      patientSocketIds.forEach(socketId => {
+        io.to(socketId).emit("appointmentStatus", {
+          status: appointment.status,
+          reason: appointment.reason,
+          doctorName: doctor.name,
+          appointmentTime: appointment.appointmentTime,
+          paymentRequired: status === 'Confirmed',
+          amount: appointment.amount,
+        });
       });
+      console.log('Successfully sent appointment status notification to patient');
+    } else {
+      console.log('No active socket connections for patient:', patientId);
     }
     // --- End Notification ---
 

@@ -61,18 +61,7 @@ const DashboardDropdown = () => {
           <span className="text-base w-5 flex-shrink-0">📝</span>
           Post History
         </button>
-        <button
-          onClick={() => {
-            
-            setDropdownOpen(false);
-          }}
-          className="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-purple-700 dark:text-pink-400
-                     hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-800 dark:hover:to-pink-800
-                     rounded-2xl transition-colors duration-200 w-full select-none whitespace-nowrap"
-        >
-          <span className="text-base w-5 flex-shrink-0">📝</span>
-          dummy
-        </button>
+       
       </div>
     </div>
   );
