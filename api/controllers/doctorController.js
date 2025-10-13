@@ -249,7 +249,10 @@ export const updateAppointmentStatus = async (req, res) => {
     const patientSockets = req.app.get("patientSockets");
     const patientId = appointment.patientRef?.toString();
     const patientSocketIds = patientSockets[patientId];
-    console.log('[NOTIFY] Sending appointmentStatus to patient:', patientId, 'socketIds:', patientSocketIds);
+    
+    console.log('Sending notification to patient:', patientId);
+    console.log('Patient socket IDs:', patientSocketIds);
+    
     if (patientSocketIds && patientSocketIds.length > 0) {
       patientSocketIds.forEach(socketId => {
         io.to(socketId).emit("appointmentStatus", {
@@ -261,9 +264,9 @@ export const updateAppointmentStatus = async (req, res) => {
           amount: appointment.amount,
         });
       });
-      console.log('[NOTIFY] Emitted appointmentStatus to patient', patientId);
+      console.log('Successfully sent appointment status notification to patient');
     } else {
-      console.log('[NOTIFY] No socketId found for patient', patientId);
+      console.log('No active socket connections for patient:', patientId);
     }
     // --- End Notification ---
 

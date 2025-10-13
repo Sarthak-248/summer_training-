@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:5000');
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://summer-training-final.onrender.com";
 
+const socket = io(BACKEND_URL)
 const DoctorNotifications = () => {
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('doctorNotifications');

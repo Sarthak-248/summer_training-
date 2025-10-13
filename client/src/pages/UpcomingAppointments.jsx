@@ -124,14 +124,7 @@ const UpcomingAppointments = () => {
   }, [token]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 items-center px-6 pt-16 pb-8 relative overflow-hidden transition-all duration-300">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
-        <div className="absolute w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-950 via-black to-violet-950 items-center px-6 pt-16 pb-8 relative transition-all duration-300">
       {/* Custom Styles */}
       <style jsx>{`
         @keyframes fadeIn {
@@ -201,7 +194,7 @@ const UpcomingAppointments = () => {
             <p className="text-blue-200">Book an appointment to see it here</p>
           </div>
         ) : (
-          <ul key={updateKey} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ul key={updateKey} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
             {appointments.map((appt) => (
               <li
                 key={appt._id}
@@ -307,12 +300,12 @@ const UpcomingAppointments = () => {
                       <span className="text-xl font-black text-cyan-300">₹{appt.amount}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-bold text-blue-200">Payment Status:</span>
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-500 ${
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-semibold text-purple-200">Payment Status:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold transition-all duration-500 ${
                         appt.paymentStatus === 'Paid' 
-                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/50' 
-                          : 'bg-yellow-400 text-gray-900 shadow-lg shadow-yellow-400/50'
+                          ? 'bg-green-500 text-white animate-pulse' 
+                          : 'bg-yellow-400 text-gray-900'
                       }`}>
                         {appt.paymentStatus === 'Paid' ? '✅ Paid' : '⏳ Pending'}
                       </span>
@@ -331,9 +324,9 @@ const UpcomingAppointments = () => {
                     )}
 
                     {appt.paymentStatus === 'Paid' && appt.paymentId && (
-                      <div className="mt-3 p-3 bg-green-500/20 border border-green-500/40 rounded-lg text-center animate-fadeIn">
-                        <p className="text-green-300 font-semibold text-sm">🎉 Payment Successful!</p>
-                        <p className="text-green-200 text-xs mt-1">ID: {appt.paymentId}</p>
+                      <div className="mt-2 text-xs text-green-300 text-center animate-fadeIn">
+                        🎉 Payment Successful! <br />
+                        Payment ID: {appt.paymentId}
                       </div>
                     )}
 
@@ -347,7 +340,7 @@ const UpcomingAppointments = () => {
                       
                       if (!isTimeForCall) {
                         return (
-                          <div className="w-full mt-3 py-3 px-4 bg-white/5 border border-white/10 text-blue-200 font-semibold rounded-xl text-center text-sm">
+                          <div className="w-full mt-3 py-2 px-4 bg-gray-400 text-white font-semibold rounded-lg text-center opacity-75">
                             {timeDiffMinutes > 15 
                               ? `📅 Call available ${Math.ceil(timeDiffMinutes - 15)} min before appointment`
                               : '⏰ Call window has ended'
@@ -359,15 +352,12 @@ const UpcomingAppointments = () => {
                       return (
                         <button
                           onClick={() => window.open(`/video-call/${appt.appointmentId}`, '_blank')}
-                          className="w-full mt-3 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                          className="w-full mt-3 py-2 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 animate-pulse"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                          Join Video Call
+                          📹 Join Video Call
                           {timeDiffMinutes <= 0 && timeDiffMinutes >= -5 && (
-                            <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce font-bold">
-                              LIVE
+                            <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
+                              LIVE NOW
                             </span>
                           )}
                         </button>

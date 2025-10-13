@@ -1,17 +1,20 @@
 import dotenv from "dotenv";
 dotenv.config();
+import path from "path";
+import { fileURLToPath } from "url";
 
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
+
 import authRoutes from "./routes/authRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import patientRoutes from "./routes/patientRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import videoCallRoutes from "./routes/videoCallRoutes.js";
-import reminderScheduler from "./reminderScheduler.js"; // Import the reminder scheduler
+import reminderScheduler from "./reminderScheduler.js";
 
 import jwt from "jsonwebtoken";
 
@@ -19,123 +22,86 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173", // Your React app's URL
-    methods: ["GET", "POST"]
-  }
+    origin: "http://localhost:5173", // React dev server URL
+    methods: ["GET", "POST"],
+  },
 });
 
-// Store socket mappings (support multiple sockets per user)
+// Store socket mappings
 const doctorSockets = {};
 const patientSockets = {};
 
 // Socket.IO connection handling
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
 
-  // Handle doctor registration
-  socket.on('registerDoctor', (doctorId) => {
-    console.log('Doctor registered:', doctorId);
+  // Register doctor socket
+  socket.on("registerDoctor", (doctorId) => {
     if (!doctorSockets[doctorId]) doctorSockets[doctorId] = [];
     if (!doctorSockets[doctorId].includes(socket.id)) {
       doctorSockets[doctorId].push(socket.id);
     }
   });
 
-  // Handle patient registration
-  socket.on('registerPatient', (patientId) => {
-    console.log('Patient registered:', patientId);
+  // Register patient socket
+  socket.on("registerPatient", (patientId) => {
     if (!patientSockets[patientId]) patientSockets[patientId] = [];
     if (!patientSockets[patientId].includes(socket.id)) {
       patientSockets[patientId].push(socket.id);
     }
   });
 
-  // Test notification endpoints for debugging
-  socket.on('testNotificationToDoctor', (data) => {
-    console.log('[TEST] Sending test notification to doctor:', data);
-    const doctorSocketIds = doctorSockets[data.doctorId] || [];
-    doctorSocketIds.forEach(socketId => {
-      io.to(socketId).emit(data.event, data.data);
-      console.log(`[TEST] Emitted ${data.event} to doctor socket ${socketId}`);
-    });
-  });
-
-  socket.on('testNotificationToPatient', (data) => {
-    console.log('[TEST] Sending test notification to patient:', data);
-    const patientSocketIds = patientSockets[data.patientId] || [];
-    patientSocketIds.forEach(socketId => {
-      io.to(socketId).emit(data.event, data.data);
-      console.log(`[TEST] Emitted ${data.event} to patient socket ${socketId}`);
-    });
-  });
-
-  socket.on('testPaymentNotification', (data) => {
-    console.log('[TEST] Sending test payment notification:', data);
-    
-    // To patient
-    const patientSocketIds = patientSockets[data.patientId] || [];
-    patientSocketIds.forEach(socketId => {
-      io.to(socketId).emit('paymentReceived', data.data);
-      console.log(`[TEST] Emitted paymentReceived to patient socket ${socketId}`);
-    });
-    
-    // To doctor
-    const doctorSocketIds = doctorSockets[data.doctorId] || [];
-    doctorSocketIds.forEach(socketId => {
-      io.to(socketId).emit('paymentReceived', data.data);
-      console.log(`[TEST] Emitted paymentReceived to doctor socket ${socketId}`);
-    });
-  });
-
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-    // Remove from mappings
-    Object.keys(doctorSockets).forEach(key => {
-      doctorSockets[key] = doctorSockets[key].filter(id => id !== socket.id);
+  // Handle disconnect
+  socket.on("disconnect", () => {
+    Object.keys(doctorSockets).forEach((key) => {
+      doctorSockets[key] = doctorSockets[key].filter((id) => id !== socket.id);
       if (doctorSockets[key].length === 0) delete doctorSockets[key];
     });
-    Object.keys(patientSockets).forEach(key => {
-      patientSockets[key] = patientSockets[key].filter(id => id !== socket.id);
+    Object.keys(patientSockets).forEach((key) => {
+      patientSockets[key] = patientSockets[key].filter((id) => id !== socket.id);
       if (patientSockets[key].length === 0) delete patientSockets[key];
     });
   });
 });
 
 // Make socket mappings available to routes
-app.set('io', io);
-app.set('doctorSockets', doctorSockets);
-app.set('patientSockets', patientSockets);
-app.set('patientSockets', patientSockets);
+app.set("io", io);
+app.set("doctorSockets", doctorSockets);
+app.set("patientSockets", patientSockets);
 
 app.use(cors());
 app.use(express.json());
 
-// Middleware to authenticate and populate req.user
+// Paths for __dirname in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Serve React build (correct relative path)
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
-// Public routes (no token needed)
-app.use("/api/appointments" , patientRoutes);
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
+
+// Public routes
+app.use("/api/appointments", patientRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/patient", patientRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/video-call", videoCallRoutes);
 
-
-// Protected routes (token required)
-// Doctor routes (auth handled inside doctorRoutes.js)
+// Protected routes
 app.use("/api/doctors", doctorRoutes);
 
-  //app.use("/api/appointments", doctorRoutes);
-
+// Connect to MongoDB and start cron
 mongoose
   .connect(process.env.MONGODB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log('✅ MongoDB Connected');
-   reminderScheduler(); // start the cron reminders after DB is connected...............................................................................
+    console.log("✅ MongoDB Connected");
+    reminderScheduler();
   })
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 

@@ -388,7 +388,7 @@ export const analyzeReport = (req, res) => {
   console.log("📂 Resolved file path:", filePath);
 
   // Wrap paths in quotes to support spaces in paths
-  const command = `"C:\\Users\\utkar\\Downloads\\proj\\New folder\\summer_training-\\myenv\\Scripts\\python.exe" "${scriptPath}" "${filePath}"`;
+const command = `"C:\\Users\\sarthak\\OneDrive\\Desktop\\tom\\summer_training-\\api\\myenv\\Scripts\\python.exe" "${scriptPath}" "${filePath}"`;
 
   exec(command, (err, stdout, stderr) => {
     if (stderr) {

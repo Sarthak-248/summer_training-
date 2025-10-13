@@ -48,13 +48,13 @@ const PaymentComponent = ({ appointmentId, doctorName, amount, onSuccess, onClos
             if (verifyResponse.data.success) {
               console.log('Payment verification successful:', verifyResponse.data);
               
-              // Show success notification [DISABLED]
-              // if (Notification.permission === 'granted') {
-              //   new Notification('Payment Successful!', {
-              //     body: `Payment of ₹${amount} completed successfully`,
-              //     icon: '/icons/payment-success.png',
-              //   });
-              // }
+              // Show success notification
+              if (Notification.permission === 'granted') {
+                new Notification('Payment Successful!', {
+                  body: `Payment of ₹${amount} completed successfully`,
+                  icon: '/icons/payment-success.png',
+                });
+              }
               
               onSuccess(response.razorpay_payment_id);
             } else {

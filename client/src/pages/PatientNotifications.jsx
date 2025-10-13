@@ -2,18 +2,50 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:5000');
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
+
+
+const socket = io(BACKEND_URL, {
+  transports: ['websocket', 'polling'],
+  timeout: 20000,
+  forceNew: true
+});
 
 const PatientNotifications = () => {
   const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem('patientNotifications');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('patientNotifications');
+      return saved ? JSON.parse(saved) : [];
+    } catch (err) {
+      console.error("Error parsing saved notifications:", err);
+      return [];
+    }
   });
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const [socketError, setSocketError] = useState(null);
+
   const navigate = useNavigate();
+
+  // Always re-sync from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('patientNotifications');
+      if (saved) {
+        setNotifications(JSON.parse(saved));
+      }
+    } catch (err) {
+      console.error("Error parsing localStorage data on mount:", err);
+    }
+  }, []);
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('patientNotifications', JSON.stringify(notifications));
+    try {
+      localStorage.setItem('patientNotifications', JSON.stringify(notifications));
+    } catch (err) {
+      console.error("Error saving notifications:", err);
+    }
   }, [notifications]);
 
   useEffect(() => {
@@ -22,19 +54,38 @@ const PatientNotifications = () => {
     //   Notification.requestPermission();
     // }
 
-    // Register patient socket connection
-    const patientId = localStorage.getItem('patientId');
-    console.log('[SOCKET] Patient registering with ID:', patientId);
-    if (patientId) {
-      socket.emit('registerPatient', patientId);
-      console.log('[SOCKET] Emitted registerPatient with ID:', patientId);
-    } else {
-      console.error('[SOCKET] No patientId found in localStorage');
-    }
+    // Socket connection handlers
+    socket.on('connect', () => {
+      console.log('Socket connected successfully');
+      setConnectionStatus('connected');
+      setSocketError(null);
+      
+      // Register patient socket connection
+      const patientId = localStorage.getItem('patientId');
+      if (patientId) {
+        console.log("Registering patient socket with ID:", patientId);
+        socket.emit('registerPatient', patientId);
+      } else {
+        console.warn("No patientId found in localStorage — socket may not receive events.");
+        setSocketError('No patient ID found. Please log in again.');
+      }
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Socket disconnected');
+      setConnectionStatus('disconnected');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setConnectionStatus('error');
+      setSocketError(error.message);
+    });
 
     // Listen for appointment status updates
     socket.on('appointmentStatus', (data) => {
-      console.log('[SOCKET] Received appointmentStatus:', data);
+      console.log("Received appointmentStatus event:", data);
+
       let message = data.message || '';
       if (!message) {
         if (data.status === 'Confirmed') {
@@ -62,60 +113,50 @@ const PatientNotifications = () => {
         read: false
       };
 
-      setNotifications(prev => [newNotification, ...prev]);
+      setNotifications(prev => {
+        // Prevent duplicate notifications
+        const exists = prev.some(n => 
+          n.message === message && 
+          Math.abs(new Date(n.time) - new Date()) < 5000
+        );
+        if (exists) return prev;
+        return [newNotification, ...prev];
+      });
 
-      console.log('[SOCKET] Adding appointment notification to state:', newNotification);
-
-      // Show browser notification if permission granted [DISABLED]
-      // if (Notification.permission === "granted") {
-      //   new Notification("Appointment Update", {
-      //     body: message,
-      //     icon: data.status === 'Confirmed' ? "/icons/appointment-success.png" : "/icons/appointment-error.png"
-      //   });
-      // }
+      // Show browser notification if permission granted
+      if (Notification.permission === "granted") {
+        try {
+          new Notification("Appointment Update", {
+            body: message,
+            icon: data.status === 'Confirmed' 
+              ? "/icons/appointment-success.png" 
+              : "/icons/appointment-error.png"
+          });
+        } catch (notificationError) {
+          console.error('Error showing browser notification:', notificationError);
+        }
+      }
     });
 
-    // Listen for payment confirmations
-    socket.on('paymentReceived', (data) => {
-      console.log('[SOCKET] Received paymentReceived:', data);
-      const message = `Payment of ₹${data.amount} received for appointment with Dr. ${data.doctorName}. Your appointment is confirmed`;
-      
-      const newNotification = {
-        id: Date.now(),
-        type: 'payment',
-        message,
-        doctorName: data.doctorName,
-        amount: data.amount,
-        time: new Date().toLocaleTimeString(),
-        read: false
-      };
-
-      console.log('[SOCKET] Adding payment notification to state:', newNotification);
-      setNotifications(prev => [newNotification, ...prev]);
-
-      // Show browser notification if permission granted [DISABLED]
-      // if (Notification.permission === "granted") {
-      //   new Notification('Payment Confirmed', { body: message });
-      // }
-    });
-
-    // Connection event logging
-    socket.on('connect', () => {
-      console.log('[SOCKET] Patient connected to server');
-    });
-
-    socket.on('disconnect', () => {
-      console.log('[SOCKET] Patient disconnected from server');
+    // Handle socket errors
+    socket.on('error', (error) => {
+      console.error('Socket error:', error);
+      setSocketError(error.message);
     });
 
     return () => {
       socket.off('appointmentStatus');
-      socket.off('paymentReceived');
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('connect_error');
+      socket.off('error');
     };
   }, []);
 
   const handleNotificationClick = (notification) => {
-    setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
+    setNotifications(prev =>
+      prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
+    );
     navigate('/patient/appointments/upcoming');
   };
 

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notification Test</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Patient Notification Test</h1>
+    <button onclick="testNotification()">Send Test Notification</button>
+    <div id="status">Status: Not connected</div>
+    <div id="notifications"></div>
+
+    <script>
+        const socket = io('http://localhost:5000');
+        const statusDiv = document.getElementById('status');
+        const notificationsDiv = document.getElementById('notifications');
+
+        socket.on('connect', () => {
+            statusDiv.innerHTML = 'Status: Connected';
+            socket.emit('registerPatient', 'test-patient-id');
+        });
+
+        socket.on('disconnect', () => {
+            statusDiv.innerHTML = 'Status: Disconnected';
+        });
+
+        socket.on('appointmentStatus', (data) => {
+            console.log('Received notification:', data);
+            const notification = document.createElement('div');
+            notification.innerHTML = `<p>${JSON.stringify(data)}</p>`;
+            notificationsDiv.appendChild(notification);
+        });
+
+        function testNotification() {
+            // This would normally be triggered by the backend
+            console.log('Test notification triggered');
+        }
+    </script>
+</body>
+</html>
