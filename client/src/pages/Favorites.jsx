@@ -71,10 +71,10 @@ const FavoritesPage = () => {
       return;
     }
 
-    // Request notification permission if not granted
-    if (Notification.permission !== 'granted') {
-      await Notification.requestPermission();
-    }
+    // Request notification permission if not granted [DISABLED]
+    // if (Notification.permission !== 'granted') {
+    //   await Notification.requestPermission();
+    // }
 
     try {
       const token = localStorage.getItem('token');
@@ -87,15 +87,16 @@ const FavoritesPage = () => {
         }
       );
 
-      // Show success notification if permission granted
-      if (Notification.permission === 'granted') {
-        new Notification('Appointment booked!', {
-          body: `Your appointment with Dr. ${selectedDoctor.name} is confirmed.`,
-          icon: notsuccess,
-        });
-      } else {
-        alert('Appointment booked!');
-      }
+      // Show success notification if permission granted [DISABLED]
+      // if (Notification.permission === 'granted') {
+      //   new Notification('Appointment booked!', {
+      //     body: `Your appointment with Dr. ${selectedDoctor.name} is confirmed.`,
+      //     icon: notsuccess,
+      //   });
+      // } else {
+      //   alert('Appointment booked!');
+      // }
+      alert('Appointment booked!');
 
       setSelectedDoctor(null);
       setForm({ patientName: '', patientContact: '', appointmentTime: '', reason: '' });
@@ -103,70 +104,102 @@ const FavoritesPage = () => {
     } catch (err) {
       console.error('Booking failed:', err);
 
-      // Show error notification if permission granted
-      if (Notification.permission === 'granted') {
-        new Notification('Booking failed', {
-          body: 'There was an error booking your appointment. Please try again.',
-          icon: noterror,
-        });
-      } else {
-        alert('Booking failed. Please try again.');
-      }
+      // Show error notification if permission granted [DISABLED]
+      // if (Notification.permission === 'granted') {
+      //   new Notification('Booking failed', {
+      //     body: 'There was an error booking your appointment. Please try again.',
+      //     icon: noterror,
+      //   });
+      // } else {
+      //   alert('Booking failed. Please try again.');
+      // }
+      alert('Booking failed. Please try again.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-950 to-black py-16 px-6 md:px-12 font-sans">
-      <div className="text-center mb-14">
-        <h1 className="text-5xl font-extrabold text-transparent bg-clip-text text-white mt-4 select-none">
-          Your Favorites
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 py-16 px-6 md:px-12 font-sans relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
+        <div className="absolute w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl">
+      <div className="text-center mb-14 relative z-10">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-pink-500 to-red-500 rounded-full mb-4 shadow-2xl">
+          <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          </svg>
+        </div>
+        <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pink-400 via-red-400 to-rose-400 bg-clip-text text-transparent mt-4 select-none drop-shadow-lg">
+          Your Favorite Doctors
+        </h1>
+        <p className="text-blue-200 text-lg mt-2">Quick access to your most trusted healthcare providers</p>
+      </div>
+
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {favorites.length === 0 ? (
-          <p className="text-center text-white/90 col-span-full text-lg font-semibold drop-shadow-lg">
-            No doctors added to favorites yet.
-          </p>
+          <div className="col-span-full">
+            <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-16 text-center">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 rounded-full mb-6">
+                <svg className="w-12 h-12 text-pink-300" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </div>
+              <p className="text-2xl font-semibold text-white mb-2">No Favorites Yet</p>
+              <p className="text-blue-200">Start adding doctors to your favorites for quick access</p>
+            </div>
+          </div>
         ) : (
           favorites.map((doc) => (
             <div
               key={doc._id}
-              className="cursor-pointer bg-black bg-opacity-40 rounded-3xl shadow-lg shadow-purple-900/60 hover:shadow-purple-700/80 transform hover:-translate-y-4 transition-transform duration-300 border border-purple-700"
+              className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl border border-white/20 hover:border-pink-400/50 transform hover:-translate-y-2 transition-all duration-300 overflow-hidden"
             >
-              <img
-                src={doc.imageUrl || '/default-doctor.jpg'}
-                alt={doc.name}
-                className="rounded-t-3xl h-56 w-full object-cover border-b border-purple-700"
-              />
-              <div className="p-2 text-white">
-                <h2 className="text-2xl font-semibold bg-gradient-to-r from-[#a855f7] to-[#7e22ce] bg-clip-text text-transparent drop-shadow-md select-none">
-                  {doc.name}
-                </h2>
-                <p className="text-sm text-purple-300 italic mt-1 select-none">{doc.specialty}</p>
-                <p className="mt-3 font-semibold text-purple-400 select-none">
-                  Consultation Fee: ₹{doc.consultationFees}
-                </p>
-                {/* Add to Favorites Button */}
+              <div className="relative overflow-hidden">
+                <img
+                  src={doc.imageUrl || '/default-doctor.jpg'}
+                  alt={doc.name}
+                  className="h-56 w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                {/* Favorite Heart Button Overlay */}
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
-                    addToFavorites(doc);
+                    handleRemoveFromFavorites(doc._id);
                   }}
-                  className="mt-5 flex justify-end"
+                  className="absolute top-3 right-3 bg-white/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-all"
                 >
-                  {isFavorite(doc._id) ? (
-                    <FaHeart className="text-red-500" size={24} />
-                  ) : (
-                    <FaRegHeart className="text-white" size={24} />
-                  )}
+                  <FaHeart className="text-red-500 drop-shadow-lg animate-pulse" size={20} />
+                </div>
+              </div>
+              <div className="p-5 text-white">
+                <h2 className="text-xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent drop-shadow-md select-none mb-1">
+                  Dr. {doc.name}
+                </h2>
+                <p className="text-sm text-blue-200 italic mb-3 select-none flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {doc.specialty}
+                </p>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-lg px-3 py-2 border border-blue-400/30">
+                    <p className="text-xs text-blue-200 mb-1">Consultation Fee</p>
+                    <p className="font-bold text-white select-none">₹{doc.consultationFees}</p>
+                  </div>
                 </div>
                 {/* View Details Button */}
                 <button
-                  onClick={() => setSelectedDoctor(doc)}
-                  className="mt-5 w-full bg-gradient-to-r from-purple-700 via-purple-900 to-purple-800 hover:from-purple-900 hover:via-purple-700 hover:to-purple-800 py-2 rounded-xl text-white shadow-md transition"
+                  onClick={() => handleBookAppointment(doc)}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                 >
-                  View Details & Book
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Book Appointment
                 </button>
               </div>
             </div>
@@ -176,17 +209,27 @@ const FavoritesPage = () => {
 
       {/* Appointment Booking Modal */}
       {selectedDoctor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-all">
-          <div className="relative bg-gradient-to-br from-white via-blue-50 to-purple-100 rounded-3xl shadow-2xl w-full max-w-3xl p-8 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md transition-all p-4">
+          <div className="relative bg-gradient-to-br from-white via-blue-50 to-cyan-50 rounded-3xl shadow-2xl w-full max-w-4xl p-8 animate-fade-in border-2 border-blue-200 max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button
               onClick={() => setSelectedDoctor(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none"
+              className="absolute top-4 right-4 bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white w-10 h-10 rounded-full flex items-center justify-center text-2xl font-bold focus:outline-none transition-all shadow-lg"
               aria-label="Close"
             >
               ×
             </button>
-            <h3 className="text-xl font-semibold mb-4 text-center">Dr. {selectedDoctor.name}</h3>
+            
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-3 shadow-xl">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Book Appointment</h3>
+              <p className="text-gray-600 mt-1">Schedule your consultation with Dr. {selectedDoctor.name}</p>
+            </div>
             <div className="flex flex-col md:flex-row gap-8">
               {/* Left Column: Doctor Info, Date, Slots */}
               <div className="flex-1 min-w-[220px]">

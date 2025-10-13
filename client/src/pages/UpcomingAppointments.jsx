@@ -124,7 +124,14 @@ const UpcomingAppointments = () => {
   }, [token]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-950 via-black to-violet-950 items-center px-6 pt-16 pb-8 relative transition-all duration-300">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 items-center px-6 pt-16 pb-8 relative overflow-hidden transition-all duration-300">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
+        <div className="absolute w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
       {/* Custom Styles */}
       <style jsx>{`
         @keyframes fadeIn {
@@ -144,37 +151,75 @@ const UpcomingAppointments = () => {
       `}</style>
       
       {/* Heading */}
-      <h1 className="text-4xl font-extrabold mt-4 mb-8 text-center text-yellow-300 drop-shadow-lg tracking-wide max-w-4xl w-full">
-        Your Upcoming Appointments 📅✨
-      </h1>
+      <div className="text-center mb-10 relative z-10">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-4 shadow-2xl">
+          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h1 className="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-lg tracking-wide max-w-4xl w-full">
+          Your Upcoming Appointments
+        </h1>
+        <p className="text-blue-200 text-lg mt-2">Manage and track all your scheduled consultations</p>
+      </div>
 
       {/* Error Handling */}
-      {error && <p className="text-red-600 text-center py-2">{error}</p>}
+      {error && (
+        <div className="relative z-10 mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl backdrop-blur-sm max-w-2xl mx-auto">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-red-200 text-sm font-semibold">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Loading State */}
-      {loading && <p className="text-yellow-100 text-center py-10 text-xl">Loading your appointments...</p>}
+      {loading && (
+        <div className="relative z-10 text-center">
+          <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-xl rounded-2xl px-6 py-4 border border-white/20">
+            <svg className="animate-spin h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-white font-semibold">Loading your appointments...</span>
+          </div>
+        </div>
+      )}
 
       {/* Cards Container */}
-      <div className="w-full max-w-6xl mx-auto px-6">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6">
         {appointments.length === 0 && !loading ? (
-          <p className="text-yellow-100 text-center py-10 text-xl">No upcoming appointments. 💤</p>
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-16 text-center">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 rounded-full mb-6">
+              <svg className="w-12 h-12 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-2xl font-semibold text-white mb-2">No Upcoming Appointments</p>
+            <p className="text-blue-200">Book an appointment to see it here</p>
+          </div>
         ) : (
-          <ul key={updateKey} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+          <ul key={updateKey} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {appointments.map((appt) => (
               <li
                 key={appt._id}
-                className="relative bg-white bg-opacity-20 backdrop-blur-md border-l-8 border-gradient-to-b from-pink-400 via-yellow-400 to-green-400 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-transform duration-300 transform hover:-translate-y-2 cursor-pointer text-white drop-shadow-md"
+                className="relative bg-white/10 backdrop-blur-xl border-l-4 border-blue-400 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 text-white overflow-hidden"
                 style={{ minWidth: '320px' }}
               >
+                {/* Background Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 pointer-events-none"></div>
+
                 {/* Status Ribbon */}
                 <span
-                  className={`absolute top-20 right-5 px-4 py-1 rounded-full text-sm font-semibold select-none
-                    ${appt.status === 'Confirmed' ? 'bg-green-500' : ''} 
+                  className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold select-none shadow-lg z-10
+                    ${appt.status === 'Confirmed' ? 'bg-green-500 text-white' : ''} 
                     ${appt.status === 'Pending' ? 'bg-yellow-400 text-gray-900' : ''} 
-                    ${appt.status === 'Cancelled' ? 'bg-red-600' : ''} 
-                    ${appt.status === 'Completed' ? 'bg-blue-600' : ''}
-                    ${appt.status === 'Rejected' ? 'bg-red-500' : ''}
-                    ${appt.status === 'No-show' ? 'bg-gray-400' : ''}`}
+                    ${appt.status === 'Cancelled' ? 'bg-red-500 text-white' : ''} 
+                    ${appt.status === 'Completed' ? 'bg-blue-500 text-white' : ''}
+                    ${appt.status === 'Rejected' ? 'bg-red-600 text-white' : ''}
+                    ${appt.status === 'No-show' ? 'bg-gray-500 text-white' : ''}`}
                 >
                   {appt.status === 'Confirmed' && '✔️ Confirmed'}
                   {appt.status === 'Pending' && '⏳ Pending'}
@@ -185,25 +230,38 @@ const UpcomingAppointments = () => {
                 </span>
 
                 {/* Doctor Info */}
-                <div className="mb-6">
-                  <h2 className="text-3xl font-extrabold tracking-wide mb-2">
-                    Dr. {appt.doctorName} 👨‍⚕️
+                <div className="mb-6 relative z-10">
+                  <h2 className="text-2xl font-black bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent tracking-wide mb-2 pr-24">
+                    Dr. {appt.doctorName}
                   </h2>
                   {appt.doctorSpecialty && (
-                    <p className="italic font-semibold text-lg">🩺 {appt.doctorSpecialty}</p>
+                    <p className="text-blue-200 font-semibold text-base flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      {appt.doctorSpecialty}
+                    </p>
                   )}
                 </div>
 
                 {/* Appointment Details */}
-                <div className="space-y-4 text-lg font-semibold">
-                  <div className="flex items-center gap-4">
-                    <span className="text-3xl">📅</span>
-                    <span>{formatDate(appt.date)}</span>
+                <div className="space-y-3 relative z-10">
+                  <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <span className="text-white font-semibold">{formatDate(appt.date)}</span>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <span className="text-3xl">⏰</span>
-                    <span>
+                  <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-white font-semibold">
                       {new Date(appt.date).toLocaleTimeString('en-US', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -215,42 +273,46 @@ const UpcomingAppointments = () => {
                   {/* Rejection / Cancel Reason */}
                   {(appt.status === 'Cancelled' || appt.status === 'Rejected') && appt.reason && (
                     <div
-                      className="relative bg-gradient-to-r from-red-200 via-red-300 to-red-400 text-red-900 p-6 rounded-2xl border-2 border-red-600 shadow-lg shadow-red-500/50 font-semibold animate-pulse hover:scale-[1.05] transition-transform duration-300 ease-in-out cursor-help select-text"
+                      className="relative bg-red-500/20 backdrop-blur-sm text-red-200 p-4 rounded-xl border-2 border-red-500/50 shadow-lg font-semibold"
                       title="Reason for cancellation or rejection"
                     >
-                      <div className="flex items-center gap-4 mb-2">
+                      <div className="flex items-center gap-3 mb-2">
                         <svg
-                          className="w-7 h-7 text-red-700 flex-shrink-0 animate-bounce"
+                          className="w-6 h-6 text-red-400 flex-shrink-0"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
                           strokeWidth={2}
-                          aria-hidden="true"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-12.728 12.728M5.636 5.636l12.728 12.728" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span className="text-xl font-bold tracking-wide">Reason:</span>
+                        <span className="text-base font-bold">Reason:</span>
                       </div>
-                      <p className="text-red-900 text-md leading-relaxed">{appt.rejectionReason}</p>
+                      <p className="text-red-100 text-sm leading-relaxed">{appt.rejectionReason}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Payment Section */}
                 {appt.status === 'Confirmed' && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-xl border border-purple-400/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-semibold text-purple-200">Consultation Fee:</span>
-                      <span className="text-lg font-bold text-yellow-300">₹{appt.amount}</span>
+                  <div className="mt-6 p-5 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 backdrop-blur-sm rounded-2xl border-2 border-blue-400/30 shadow-lg relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm font-bold text-blue-200 flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Consultation Fee
+                      </span>
+                      <span className="text-xl font-black text-cyan-300">₹{appt.amount}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-semibold text-purple-200">Payment Status:</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold transition-all duration-500 ${
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm font-bold text-blue-200">Payment Status:</span>
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-500 ${
                         appt.paymentStatus === 'Paid' 
-                          ? 'bg-green-500 text-white animate-pulse' 
-                          : 'bg-yellow-400 text-gray-900'
+                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/50' 
+                          : 'bg-yellow-400 text-gray-900 shadow-lg shadow-yellow-400/50'
                       }`}>
                         {appt.paymentStatus === 'Paid' ? '✅ Paid' : '⏳ Pending'}
                       </span>
@@ -259,16 +321,19 @@ const UpcomingAppointments = () => {
                     {appt.paymentStatus !== 'Paid' && (
                       <button
                         onClick={() => handlePaymentClick(appt)}
-                        className="w-full mt-2 py-2 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
+                        className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                       >
-                        💳 Pay Now
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Pay Now
                       </button>
                     )}
 
                     {appt.paymentStatus === 'Paid' && appt.paymentId && (
-                      <div className="mt-2 text-xs text-green-300 text-center animate-fadeIn">
-                        🎉 Payment Successful! <br />
-                        Payment ID: {appt.paymentId}
+                      <div className="mt-3 p-3 bg-green-500/20 border border-green-500/40 rounded-lg text-center animate-fadeIn">
+                        <p className="text-green-300 font-semibold text-sm">🎉 Payment Successful!</p>
+                        <p className="text-green-200 text-xs mt-1">ID: {appt.paymentId}</p>
                       </div>
                     )}
 
@@ -282,7 +347,7 @@ const UpcomingAppointments = () => {
                       
                       if (!isTimeForCall) {
                         return (
-                          <div className="w-full mt-3 py-2 px-4 bg-gray-400 text-white font-semibold rounded-lg text-center opacity-75">
+                          <div className="w-full mt-3 py-3 px-4 bg-white/5 border border-white/10 text-blue-200 font-semibold rounded-xl text-center text-sm">
                             {timeDiffMinutes > 15 
                               ? `📅 Call available ${Math.ceil(timeDiffMinutes - 15)} min before appointment`
                               : '⏰ Call window has ended'
@@ -294,12 +359,15 @@ const UpcomingAppointments = () => {
                       return (
                         <button
                           onClick={() => window.open(`/video-call/${appt.appointmentId}`, '_blank')}
-                          className="w-full mt-3 py-2 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 animate-pulse"
+                          className="w-full mt-3 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                         >
-                          📹 Join Video Call
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Join Video Call
                           {timeDiffMinutes <= 0 && timeDiffMinutes >= -5 && (
-                            <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
-                              LIVE NOW
+                            <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce font-bold">
+                              LIVE
                             </span>
                           )}
                         </button>
@@ -309,12 +377,12 @@ const UpcomingAppointments = () => {
                 )}
 
                 {/* Booked At Label */}
-                <div className="text-sm text-white-300 mt-4 text-center">
-                  <span className="font-semibold">Booked At: </span>
+                <div className="text-xs text-blue-200 mt-6 text-center bg-white/5 rounded-lg py-2 relative z-10">
+                  <span className="font-semibold">Booked: </span>
                   {appt.createdAt ? (
                     formatDate(appt.createdAt)
                   ) : (
-                    <span>Appointment time not available</span>
+                    <span>Time not available</span>
                   )}
                 </div>
               </li>

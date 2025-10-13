@@ -49,13 +49,13 @@ const DoctorHome = () => {
       setNotifications(updated);
       localStorage.setItem('doctorNotifications', JSON.stringify(updated));
 
-      // Show browser notification if permission granted
-      if (Notification.permission === "granted") {
-        new Notification("New Appointment Request", {
-          body: `${data.patientName} has requested an appointment`,
-          icon: "/icons/appointment-success.png"
-        });
-      }
+      // Show browser notification if permission granted [DISABLED]
+      // if (Notification.permission === "granted") {
+      //   new Notification("New Appointment Request", {
+      //     body: `${data.patientName} has requested an appointment`,
+      //     icon: "/icons/appointment-success.png"
+      //   });
+      // }
     });
 
     // Listen for payment notifications
@@ -77,13 +77,13 @@ const DoctorHome = () => {
       setNotifications(updated);
       localStorage.setItem('doctorNotifications', JSON.stringify(updated));
 
-      // Show browser notification if permission granted
-      if (Notification.permission === "granted") {
-        new Notification("Payment Received", {
-          body: `Payment of ₹${data.amount} received from ${data.patientName}`,
-          icon: "/icons/payment-success.png"
-        });
-      }
+      // Show browser notification if permission granted [DISABLED]
+      // if (Notification.permission === "granted") {
+      //   new Notification("Payment Received", {
+      //     body: `Payment of ₹${data.amount} received from ${data.patientName}`,
+      //     icon: "/icons/payment-success.png"
+      //   });
+      // }
     });
 
     return () => {
@@ -103,85 +103,94 @@ const DoctorHome = () => {
 
   return (
     <nav
-      className="
-        relative z-10 
-        bg-gradient-to-r from-purple-700 via-indigo-800 to-blue-900 
-        text-white 
-        border-b border-blue-700/40 
-        backdrop-blur-md 
-        shadow-lg
-        px-6 py-3
-        flex justify-center
-      "
-      style={{ position: 'sticky', top: 0 }}
-      aria-label="Primary Navigation"
+      className="bg-gradient-to-r from-indigo-900/95 via-purple-900/95 to-pink-900/95 backdrop-blur-lg text-white shadow-2xl fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/10"
+      role="navigation"
+      aria-label="Doctor Navigation"
     >
-      <div className="max-w-7xl w-full flex items-center justify-between">
-        {/* Brand with emoji sparkle */}
-        <div className="flex items-center gap-2">
-          <span className="text-3xl select-none">✨</span>
-          <span className="text-3xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-pink-500 to-red-400">
-            Health Card
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Brand with heart icon */}
+        <Link
+          to="/doctor/home"
+          className="group flex items-center gap-3 text-2xl font-black text-white hover:text-pink-300 tracking-wide transition-all duration-300"
+          aria-label="Go to Health Care Companion Home"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg blur-md opacity-50 group-hover:opacity-75 transition-opacity"></div>
+            <div className="relative bg-gradient-to-r from-pink-500 to-purple-500 p-2 rounded-lg shadow-lg">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+          </div>
+          <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+            Health Care Companion
           </span>
-        </div>
+        </Link>
 
-        {/* Navigation Links */}
-        <div className="hidden md:flex items-center space-x-6">
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center gap-2">
           <Link
             to="/doctor/home"
-            className="nav-link"
+            className="px-4 py-2 rounded-xl font-semibold transition-all duration-300 hover:bg-white/10 flex items-center gap-2 text-purple-200 hover:text-white"
             aria-label="Go to Home page"
           >
-            🏠 Home
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Home
           </Link>
+          
           <Link
             to="/doctor/scheduled-appointments"
-            className="nav-link"
+            className="px-5 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
             aria-label="View Scheduled Appointments"
           >
-            📅 Scheduled Appointments
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Appointments
           </Link>
+          
           <Link
             to="/doctor/notifications"
-            className="nav-link flex items-center gap-1 relative"
+            className="relative px-4 py-2 rounded-xl font-semibold transition-all duration-300 hover:bg-white/10 flex items-center gap-2 text-purple-200 hover:text-white"
             aria-label="Notifications and Reminders"
           >
-            🔔 Notifications
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
             {unreadCount > 0 && (
-              <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 shadow animate-bounce" style={{minWidth:'1.5em',textAlign:'center'}}>
-                {unreadCount}
+              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </Link>
+          
           <Link
             to="/doctor/about"
-            className="nav-link"
+            className="px-4 py-2 rounded-xl font-semibold transition-all duration-300 hover:bg-white/10 flex items-center gap-2 text-purple-200 hover:text-white"
             aria-label="About this application"
           >
-            ℹ️ About
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            About
           </Link>
 
           {/* Profile Dropdown */}
           <ProfileDropdown />
+          
           <button
             onClick={handleLogout}
-            className="nav-link hover:text-red-400 font-semibold ml-4"
+            className="ml-2 px-5 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
           >
-            ⏻ Logout
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
           </button>
         </div>
       </div>
-
-      {/* Tailwind nav-link styles */}
-      <style>{`
-        .nav-link {
-          @apply text-white px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200 shadow-md;
-        }
-        .nav-link:hover {
-          @apply bg-indigo-600 bg-opacity-70 text-yellow-300 shadow-lg;
-          transform: scale(1.05);
-        }
-      `}</style>
     </nav>
   );
 };

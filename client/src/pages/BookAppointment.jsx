@@ -16,13 +16,7 @@ const BookAppointment = () => {
     reason: '',
   });
 
-  const [filters, setFilters] = useState({
-    name: '',
-    specialty: '',
-    maxFee: '',
-    day: '',
-    slotTime: '', // new
-  });
+
 
   const [loading, setLoading] = useState(false); // Loading state for doctors
   const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('favorites')) || []); // State to manage favorites
@@ -34,19 +28,12 @@ const BookAppointment = () => {
 
   const navigate = useNavigate(); // Hook for redirection
 
-  // Fetch doctors based on filters
+  // Fetch all doctors
   useEffect(() => {
     const fetchDoctors = async () => {
       setLoading(true);
       try {
-        const params = {};
-        if (filters.name) params.name = filters.name;
-        if (filters.specialty) params.specialty = filters.specialty;
-        if (filters.maxFee) params.maxFee = filters.maxFee;
-        if (filters.day) params.day = filters.day;
-        if (filters.slotTime) params.slotTime = filters.slotTime;
-
-        const res = await axios.get('/api/doctors/available', { params });
+        const res = await axios.get('/api/doctors/available');
         setDoctors(res.data);
       } catch (err) {
         console.error('Error fetching doctors:', err);
@@ -56,7 +43,7 @@ const BookAppointment = () => {
     };
 
     fetchDoctors();
-  }, [filters]);
+  }, []);
 
   // Fetch slots for selected doctor and date
   useEffect(() => {
@@ -107,10 +94,10 @@ const BookAppointment = () => {
     // Compose appointmentTime as ISO string
     const appointmentTime = `${selectedDate}T${selectedSlot}:00`;
 
-    // Request notification permission if not granted
-    if (Notification.permission !== 'granted') {
-      await Notification.requestPermission();
-    }
+    // Request notification permission if not granted [DISABLED]
+    // if (Notification.permission !== 'granted') {
+    //   await Notification.requestPermission();
+    // }
 
     try {
       const token = localStorage.getItem('token');
@@ -123,15 +110,16 @@ const BookAppointment = () => {
         }
       );
 
-      // Show success notification if permission granted
-      if (Notification.permission === 'granted') {
-        new Notification('Appointment booked!', {
-          body: `Your appointment with Dr. ${selectedDoctor.name} is confirmed.`,
-          icon: notsuccess,
-        });
-      } else {
-        alert('Appointment booked!');
-      }
+      // Show success notification if permission granted [DISABLED]
+      // if (Notification.permission === 'granted') {
+      //   new Notification('Appointment booked!', {
+      //     body: `Your appointment with Dr. ${selectedDoctor.name} is confirmed.`,
+      //     icon: notsuccess,
+      //   });
+      // } else {
+      //   alert('Appointment booked!');
+      // }
+      alert('Appointment booked!');
 
       setSelectedDoctor(null);
       setForm({ patientName: '', patientContact: '', appointmentTime: '', reason: '' });
@@ -139,121 +127,119 @@ const BookAppointment = () => {
     } catch (err) {
       console.error('Booking failed:', err);
 
-      // Show error notification if permission granted
-      if (Notification.permission === 'granted') {
-        new Notification('Booking failed', {
-          body: 'There was an error booking your appointment. Please try again.',
-          icon: noterror,
-        });
-      } else {
-        alert('Booking failed. Please try again.');
-      }
+      // Show error notification if permission granted [DISABLED]
+      // if (Notification.permission === 'granted') {
+      //   new Notification('Booking failed', {
+      //     body: 'There was an error booking your appointment. Please try again.',
+      //     icon: noterror,
+      //   });
+      // } else {
+      //   alert('Booking failed. Please try again.');
+      // }
+      alert('Booking failed. Please try again.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-950 to-black py-16 px-6 md:px-12 font-sans">
-      {/* Title */}
-      <div className="text-center mb-14">
-        <h1 className="text-5xl font-extrabold text-transparent bg-clip-text text-white mt-4 select-none">
-          Available Doctors
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 py-16 px-6 md:px-12 font-sans relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
+        <div className="absolute w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* Filters */}
-      <div className="relative z-10 mb-10 flex flex-wrap gap-4 max-w-6xl w-full mx-auto justify-center">
-        <input
-          type="text"
-          placeholder="Search by Name"
-          value={filters.name}
-          onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-          className="px-4 py-2 rounded-lg border border-purple-700 bg-[#2e1a58] text-white"
-        />
-        <input
-          type="text"
-          placeholder="Specialty"
-          value={filters.specialty}
-          onChange={(e) => setFilters({ ...filters, specialty: e.target.value })}
-          className="px-4 py-2 rounded-lg border border-purple-700 bg-[#2e1a58] text-white"
-        />
-        <input
-          type="number"
-          placeholder="Max Consultation Fee"
-          value={filters.maxFee}
-          onChange={(e) => setFilters({ ...filters, maxFee: e.target.value })}
-          className="px-4 py-2 rounded-lg border border-purple-700 bg-[#2e1a58] text-white"
-        />
-        <select
-          value={filters.day}
-          onChange={(e) => setFilters({ ...filters, day: e.target.value })}
-          className="px-4 py-2 rounded-lg border border-purple-700 bg-[#2e1a58] text-white"
-        >
-          <option value="">Any Day</option>
-          <option value="Monday">Monday</option>
-          <option value="Tuesday">Tuesday</option>
-          <option value="Wednesday">Wednesday</option>
-          <option value="Thursday">Thursday</option>
-          <option value="Friday">Friday</option>
-          <option value="Saturday">Saturday</option>
-          <option value="Sunday">Sunday</option>
-        </select>
-        <input
-          type="time"
-          value={filters.slotTime || ""}
-          onChange={(e) => setFilters({ ...filters, slotTime: e.target.value })}
-          className="px-4 py-2 rounded-lg border border-purple-700 bg-[#2e1a58] text-white"
-          placeholder="Slot Time"
-        />
+      {/* Title */}
+      <div className="text-center mb-14 relative z-10">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-4 shadow-2xl">
+          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <h1 className="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent mt-4 select-none drop-shadow-lg">
+          Available Doctors
+        </h1>
+        <p className="text-blue-200 text-lg mt-2">Find and book appointments with top healthcare professionals</p>
       </div>
 
       {/* Loading Indicator */}
       {loading ? (
-        <div className="text-center text-white">Loading doctors...</div>
+        <div className="relative z-10 text-center">
+          <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-xl rounded-2xl px-6 py-4 border border-white/20">
+            <svg className="animate-spin h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-white font-semibold">Loading doctors...</span>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl">
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {doctors.length === 0 ? (
-            <p className="text-center text-white/90 col-span-full text-lg font-semibold drop-shadow-lg">
-              No available doctors at the moment.
-            </p>
+            <div className="col-span-full">
+              <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-16 text-center">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 rounded-full mb-6">
+                  <svg className="w-12 h-12 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-2xl font-semibold text-white mb-2">No Doctors Available</p>
+                <p className="text-blue-200">Try adjusting your filters to see more results</p>
+              </div>
+            </div>
           ) : (
             doctors.map((doc) => (
               <div
                 key={doc._id}
-                className="cursor-pointer bg-black bg-opacity-40 rounded-3xl shadow-lg shadow-purple-900/60 hover:shadow-purple-700/80 transform hover:-translate-y-4 transition-transform duration-300 border border-purple-700"
+                className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl border border-white/20 hover:border-blue-400/50 transform hover:-translate-y-2 transition-all duration-300 overflow-hidden"
               >
-                <img
-                  src={doc.imageUrl || '/default-doctor.jpg'}
-                  alt={doc.name}
-                  className="rounded-t-3xl h-56 w-full object-cover border-b border-purple-700"
-                />
-                <div className="p-2 text-white">
-                  <h2 className="text-2xl font-semibold bg-gradient-to-r from-[#a855f7] to-[#7e22ce] bg-clip-text text-transparent drop-shadow-md select-none">
-                    {doc.name}
-                  </h2>
-                  <p className="text-sm text-purple-300 italic mt-1 select-none">{doc.specialty}</p>
-                  <p className="mt-3 font-semibold text-purple-400 select-none">
-                    Consultation Fee: ₹{doc.consultationFees}
-                  </p>
-                  {/* Add to Favorites Button */}
+                <div className="relative overflow-hidden">
+                  <img
+                    src={doc.imageUrl || '/default-doctor.jpg'}
+                    alt={doc.name}
+                    className="h-56 w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  {/* Favorite Button Overlay */}
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
                       addToFavorites(doc);
                     }}
-                    className="mt-5 flex justify-end"
+                    className="absolute top-3 right-3 bg-white/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-all"
                   >
                     {isFavorite(doc._id) ? (
-                      <FaHeart className="text-red-500" size={24} />
+                      <FaHeart className="text-red-500 drop-shadow-lg" size={20} />
                     ) : (
-                      <FaRegHeart className="text-white" size={24} />
+                      <FaRegHeart className="text-white drop-shadow-lg" size={20} />
                     )}
+                  </div>
+                </div>
+                <div className="p-5 text-white">
+                  <h2 className="text-xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent drop-shadow-md select-none mb-1">
+                    Dr. {doc.name}
+                  </h2>
+                  <p className="text-sm text-blue-200 italic mb-3 select-none flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {doc.specialty}
+                  </p>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-lg px-3 py-2 border border-blue-400/30">
+                      <p className="text-xs text-blue-200 mb-1">Consultation Fee</p>
+                      <p className="font-bold text-white select-none">₹{doc.consultationFees}</p>
+                    </div>
                   </div>
                   {/* View Details Button */}
                   <button
                     onClick={() => setSelectedDoctor(doc)}
-                    className="mt-5 w-full bg-gradient-to-r from-purple-700 via-purple-900 to-purple-800 hover:from-purple-900 hover:via-purple-700 hover:to-purple-800 py-2 rounded-xl text-white shadow-md transition"
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                   >
-                    View Details & Book
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Book Appointment
                   </button>
                 </div>
               </div>
@@ -264,170 +250,241 @@ const BookAppointment = () => {
 
       {/* Booking Form */}
       {selectedDoctor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-all">
-          <div className="relative bg-gradient-to-br from-white via-blue-50 to-purple-100 rounded-3xl shadow-2xl w-full max-w-3xl p-8 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md transition-all p-4">
+          <div className="relative bg-gradient-to-br from-white via-blue-50 to-cyan-50 rounded-3xl shadow-2xl w-full max-w-4xl p-8 animate-fade-in border-2 border-blue-200 max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button
               onClick={() => setSelectedDoctor(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none"
+              className="absolute top-4 right-4 bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white w-10 h-10 rounded-full flex items-center justify-center text-2xl font-bold focus:outline-none transition-all shadow-lg"
               aria-label="Close"
             >
               ×
             </button>
-            <h3 className="text-xl font-semibold mb-4 text-center">Dr. {selectedDoctor.name}</h3>
-            <div className="flex flex-col md:flex-row gap-8">
+            
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-3 shadow-xl">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Book Appointment</h3>
+              <p className="text-gray-600 mt-1">Schedule your consultation with Dr. {selectedDoctor.name}</p>
+            </div>
+            <div className="flex flex-col lg:flex-row gap-8">
               {/* Left Column: Doctor Info, Date, Slots */}
-              <div className="flex-1 min-w-[220px]">
-                {/* Doctor Info */}
-                <div className="flex items-center gap-4 mb-6">
-                  <img
-                    src={selectedDoctor.imageUrl || "/default-doctor.jpg"}
-                    alt={selectedDoctor.name}
-                    className="w-16 h-16 rounded-full border-4 border-purple-200 shadow-lg object-cover"
-                  />
-                  <div>
-                    <div className="text-lg font-bold text-purple-800">{selectedDoctor.name}</div>
-                    <div className="text-purple-500 font-medium">{selectedDoctor.specialty}</div>
+              <div className="flex-1 min-w-[280px]">
+                {/* Doctor Info Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 mb-6 border-2 border-blue-200 shadow-lg">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="relative">
+                      <img
+                        src={selectedDoctor.imageUrl || "/default-doctor.jpg"}
+                        alt={selectedDoctor.name}
+                        className="w-20 h-20 rounded-full border-4 border-white shadow-xl object-cover"
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Dr. {selectedDoctor.name}</div>
+                      <div className="text-blue-600 font-semibold flex items-center gap-1 mt-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {selectedDoctor.specialty}
+                      </div>
                     
-                    {selectedDoctor.qualifications && (
-                      <div className="text-base font-medium text-gray-700">{selectedDoctor.qualifications}</div>
-                    )}
-                    {selectedDoctor.yearsOfExperience && (
-                      <div className="text-base font-medium text-gray-700">{selectedDoctor.yearsOfExperience} yrs exp.</div>
-                    )}
-                    {(selectedDoctor.clinicName || selectedDoctor.clinicAddress) && (
-                      <div className="text-xs text-purple-700 mt-2">
-                        <span className="font-semibold">Clinic Address:</span>{" "}
+                      {selectedDoctor.qualifications && (
+                        <div className="text-sm text-gray-700 flex items-center gap-1 mt-1">
+                          <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                          </svg>
+                          {selectedDoctor.qualifications}
+                        </div>
+                      )}
+                      {selectedDoctor.yearsOfExperience && (
+                        <div className="text-sm text-gray-700 flex items-center gap-1 mt-1">
+                          <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {selectedDoctor.yearsOfExperience} years experience
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {(selectedDoctor.clinicName || selectedDoctor.clinicAddress) && (
+                    <div className="bg-white/50 rounded-lg p-3 mb-2">
+                      <div className="text-xs font-semibold text-blue-700 mb-1 flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Clinic Address
+                      </div>
+                      <div className="text-sm text-gray-700">
                         {selectedDoctor.clinicName ? `${selectedDoctor.clinicName}, ` : ""}
                         {selectedDoctor.clinicAddress}
                       </div>
-                    )}
-                    {selectedDoctor.awards && (
-                      <div className="text-xs text-purple-700 mt-2">
-                        <span className="font-semibold">Recognitions:</span> {selectedDoctor.awards}
-                      </div>
-                    )}
-                    {selectedDoctor.services && (
-                      <div className="text-xs text-purple-700 mt-2">
-                        <span className="font-semibold">Services:</span> {selectedDoctor.services}
-                      </div>
-                    )}
-                    <div className="text-sm text-gray-500">Fee: ₹{selectedDoctor.consultationFees}</div>
+                    </div>
+                  )}
+                  
+                  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg p-3 text-white">
+                    <div className="text-xs font-semibold mb-1">Consultation Fee</div>
+                    <div className="text-2xl font-bold">₹{selectedDoctor.consultationFees}</div>
                   </div>
                 </div>
+                
                 {/* Date Picker */}
-                <label className="block text-sm font-semibold text-purple-700 mb-1">Select Date</label>
+                <label className="block text-sm font-bold text-blue-700 mb-2 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Select Date
+                </label>
                 <input
                   type="date"
                   value={selectedDate}
                   min={new Date().toISOString().slice(0,10)}
                   onChange={e => setSelectedDate(e.target.value)}
-                  className="w-full px-4 py-2 mb-4 rounded-lg border border-purple-300 focus:ring-2 focus:ring-purple-400 transition"
+                  className="w-full px-4 py-3 mb-6 rounded-xl border-2 border-blue-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-white shadow-sm"
                 />
+                
                 {/* Slot Picker */}
-                <label className="block text-sm font-semibold text-purple-700 mb-1">Available Slots</label>
-                <div className="flex flex-wrap gap-2 mb-2 max-h-48 overflow-y-auto">
-                  {doctorSlots.length === 0 ? (
-                    <span className="text-gray-400 italic">No slots for this day</span>
-                  ) : (
-                    doctorSlots
-                      .slice()
-                      .sort((a, b) => a.start.localeCompare(b.start))
-                      .map(slot => {
-                        const isBooked = bookedSlots.includes(slot.start);
-                        return (
-                          <button
-                            key={slot.start}
-                            type="button"
-                            disabled={isBooked}
-                            onClick={() => setSelectedSlot(slot.start)}
-                            className={`px-4 py-2 rounded-lg border font-semibold shadow-sm transition
-                              ${isBooked
-                                ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
-                                : selectedSlot === slot.start
-                                  ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-purple-700 scale-105"
-                                  : "bg-white text-purple-700 border-purple-300 hover:bg-purple-100"}
-                            `}
-                            style={{ minWidth: 70 }}
-                            title={isBooked ? "Already booked" : "Book this slot"}
-                          >
-                            <span className="flex items-center gap-1">
-                              <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                              </svg>
-                              {slot.start}
-                            </span>
-                          </button>
-                        );
-                      })
-                  )}
+                <label className="block text-sm font-bold text-blue-700 mb-2 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Available Time Slots
+                </label>
+                <div className="bg-white rounded-xl p-4 border-2 border-blue-100 shadow-inner max-h-64 overflow-y-auto">
+                  <div className="flex flex-wrap gap-2">
+                    {doctorSlots.length === 0 ? (
+                      <div className="w-full text-center py-8">
+                        <svg className="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-gray-400 italic">No slots available for this day</span>
+                      </div>
+                    ) : (
+                      doctorSlots
+                        .slice()
+                        .sort((a, b) => a.start.localeCompare(b.start))
+                        .map(slot => {
+                          const isBooked = bookedSlots.includes(slot.start);
+                          return (
+                            <button
+                              key={slot.start}
+                              type="button"
+                              disabled={isBooked}
+                              onClick={() => setSelectedSlot(slot.start)}
+                              className={`px-4 py-3 rounded-lg border-2 font-semibold shadow-sm transition-all transform
+                                ${isBooked
+                                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
+                                  : selectedSlot === slot.start
+                                    ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-blue-600 scale-105 shadow-lg"
+                                    : "bg-white text-blue-700 border-blue-200 hover:bg-blue-50 hover:border-blue-400 hover:scale-105"}
+                              `}
+                              style={{ minWidth: 80 }}
+                              title={isBooked ? "Already booked" : "Book this slot"}
+                            >
+                              <div className="flex items-center gap-1">
+                                <svg className={`w-4 h-4 ${selectedSlot === slot.start ? 'text-white' : 'text-blue-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {slot.start}
+                              </div>
+                            </button>
+                          );
+                        })
+                    )}
+                  </div>
                 </div>
               </div>
+              
               {/* Right Column: Patient Details */}
-              <div className="flex-1 min-w-[220px]">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-purple-700 mb-1">Your Name</label>
-                    <input
-                      type="text"
-                      placeholder="Enter your name"
-                      value={form.patientName}
-                      onChange={e => setForm({ ...form, patientName: e.target.value })}
-                      className="w-full px-4 py-2 rounded-lg border border-purple-300 focus:ring-2 focus:ring-purple-400 transition"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-purple-700 mb-1">Contact Number</label>
-                    <input
-                      type="text"
-                      placeholder="Enter contact number"
-                      value={form.patientContact}
-                      onChange={e => setForm({ ...form, patientContact: e.target.value })}
-                      className="w-full px-4 py-2 rounded-lg border border-purple-300 focus:ring-2 focus:ring-purple-400 transition"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-purple-700 mb-1">Selected Slot</label>
-                    <input
-                      type="text"
-                      value={
-                        selectedDate && selectedSlot
-                          ? `${selectedDate} | ${selectedSlot}`
-                          : "Select a slot on left"
-                      }
-                      readOnly
-                      className="w-full px-4 py-2 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 font-semibold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-purple-700 mb-1">Reason for Visit</label>
-                    <textarea
-                      placeholder="Describe your reason for visit"
-                      value={form.reason}
-                      onChange={e => setForm({ ...form, reason: e.target.value })}
-                      className="w-full px-4 py-2 rounded-lg border border-purple-300 focus:ring-2 focus:ring-purple-400 transition"
-                      rows={2}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2 mt-6">
-                    <button
-                      type="submit"
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold shadow-lg hover:from-purple-700 hover:to-blue-600 transition disabled:opacity-60"
-                      disabled={!selectedSlot}
-                    >
-                      Confirm Appointment
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDoctor(null)}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-gray-400 to-gray-600 text-white font-bold shadow-lg hover:from-gray-500 hover:to-gray-700 transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+              <div className="flex-1 min-w-[280px]">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200 shadow-lg">
+                  <h4 className="text-lg font-bold text-blue-700 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Your Details
+                  </h4>
+                  
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-700 mb-2">Your Name *</label>
+                      <input
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={form.patientName}
+                        onChange={e => setForm({ ...form, patientName: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-blue-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-white"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-700 mb-2">Contact Number *</label>
+                      <input
+                        type="text"
+                        placeholder="Enter your contact number"
+                        value={form.patientContact}
+                        onChange={e => setForm({ ...form, patientContact: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-blue-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-white"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-700 mb-2">Selected Appointment</label>
+                      <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3 rounded-xl font-semibold text-center">
+                        {selectedDate && selectedSlot ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {selectedDate} at {selectedSlot}
+                          </div>
+                        ) : (
+                          <span className="text-white/70">Please select a time slot</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-700 mb-2">Reason for Visit</label>
+                      <textarea
+                        placeholder="Briefly describe your health concerns or reason for consultation"
+                        value={form.reason}
+                        onChange={e => setForm({ ...form, reason: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-blue-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-white resize-none"
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <div className="flex flex-col gap-3 mt-6 pt-4 border-t-2 border-blue-200">
+                      <button
+                        type="submit"
+                        className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                        disabled={!selectedSlot}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Confirm Appointment
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDoctor(null)}
+                        className="w-full py-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold shadow transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

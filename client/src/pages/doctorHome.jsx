@@ -1,79 +1,57 @@
 import React from 'react';
-import { FaUserMd, FaCalendarAlt, FaClipboardList, FaHistory } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import HomeImage from '../assets/image.png'; // Placeholder for the image
+import HomeImage from '../assets/dashboardImage.webp';
 
 const DoctorHome = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-600 text-white font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white font-sans">
       {/* Hero Section */}
-      <div className="flex flex-col md:flex-row items-center justify-between px-10 py-20">
-        <div className="md:w-1/2 mb-10 md:mb-0">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            Welcome Back, Doctor!
-          </h1>
-          <p className="text-lg text-indigo-100">
-            Stay updated with your appointments, review patient history, and manage your day efficiently. This is your medical command center.
-          </p>
-          <Link
-            to="/doctor/scheduled-appointments"
-            className="mt-6 inline-block bg-white text-indigo-700 font-semibold px-6 py-3 rounded-full shadow-lg hover:bg-gray-100 transition duration-300"
-          >
-            View Appointments
-          </Link>
+      <div className="flex flex-col md:flex-row items-center justify-between px-10 py-20 pt-28 relative overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl -top-20 -left-20 animate-pulse"></div>
+          <div className="absolute w-96 h-96 bg-pink-500/20 rounded-full blur-3xl -bottom-20 -right-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
         </div>
-        <div className="md:w-1/2 flex justify-center">
-          <img
-            src={HomeImage}
-            alt="Doctor"
-            className="w-100 h-auto rounded-xl shadow-2xl"
-          />
-        </div>
-      </div>
 
-      {/* Dashboard Features */}
-      <div className="bg-white rounded-t-3xl px-8 py-12 text-gray-800">
-        <h2 className="text-3xl font-bold text-center mb-10">Quick Access</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-          <FeatureCard
-            icon={<FaCalendarAlt size={32} />}
-            title="Appointments"
-            desc="View and manage all your upcoming appointments in one place."
-            link="/doctor/scheduled-appointments"
-          />
-          <FeatureCard
-            icon={<FaClipboardList size={32} />}
-            title="Patient Records"
-            desc="Access detailed medical histories and past diagnoses."
-            link="/doctor/patientrecords"
-          />
-          <FeatureCard
-            icon={<FaUserMd size={32} />}
-            title="Profile"
-            desc="Edit your profile, availability, and personal settings."
-            link="/doctor/profile"
-          />
-          <FeatureCard
-            icon={<FaHistory size={32} />}
-            title="History"
-            desc="Track completed appointments and case follow-ups."
-            link="/doctor/history"
-          />
+        <div className="md:w-1/2 mb-10 md:mb-0 relative z-10">
+          <div className="space-y-6">
+            <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 drop-shadow-2xl leading-tight">
+              Welcome Back, Doctor!
+            </h1>
+            <div className="flex items-start gap-3 text-3xl">
+              <span className="animate-bounce">👨‍⚕️</span>
+              <span className="animate-bounce" style={{ animationDelay: '0.1s' }}>💼</span>
+              <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>✨</span>
+            </div>
+            <p className="text-xl md:text-2xl text-purple-100 leading-relaxed font-light">
+              Stay updated with your appointments, review patient history, and manage your day efficiently. This is your medical command center.
+            </p>
+            <Link
+              to="/doctor/scheduled-appointments"
+              className="group relative inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-2xl font-bold text-lg shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              View Appointments
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </Link>
+          </div>
+        </div>
+        <div className="md:w-1/2 flex justify-center relative z-10">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
+            <img
+              src={HomeImage}
+              alt="Doctor Dashboard"
+              className="relative w-100 h-auto rounded-3xl shadow-2xl transform transition-transform duration-500 hover:scale-105 hover:rotate-1 border-4 border-white/20"
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 };
-
-const FeatureCard = ({ icon, title, desc, link }) => (
-  <Link
-    to={link}
-    className="p-6 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-  >
-    <div className="text-indigo-600 mb-3">{icon}</div>
-    <h3 className="text-xl font-semibold mb-2">{title}</h3>
-    <p className="text-sm text-gray-700">{desc}</p>
-  </Link>
-);
 
 export default DoctorHome;

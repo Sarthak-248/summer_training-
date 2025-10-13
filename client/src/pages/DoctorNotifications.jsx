@@ -53,13 +53,13 @@ const DoctorNotifications = () => {
       setNotifications(updated);
       localStorage.setItem('doctorNotifications', JSON.stringify(updated));
 
-      // Show browser notification if permission granted
-      if (Notification.permission === "granted") {
-        new Notification("New Appointment Request", {
-          body: `${data.patientName} has requested an appointment`,
-          icon: "/icons/appointment-success.png"
-        });
-      }
+      // Show browser notification if permission granted [DISABLED]
+      // if (Notification.permission === "granted") {
+      //   new Notification("New Appointment Request", {
+      //     body: `${data.patientName} has requested an appointment`,
+      //     icon: "/icons/appointment-success.png"
+      //   });
+      // }
     });
 
     // Listen for payment notifications
@@ -84,13 +84,13 @@ const DoctorNotifications = () => {
       setNotifications(updated);
       localStorage.setItem('doctorNotifications', JSON.stringify(updated));
 
-      // Show browser notification if permission granted
-      if (Notification.permission === "granted") {
-        new Notification("Payment Received", {
-          body: `Payment of ₹${data.amount} received from ${data.patientName}`,
-          icon: "/icons/payment-success.png"
-        });
-      }
+      // Show browser notification if permission granted [DISABLED]
+      // if (Notification.permission === "granted") {
+      //   new Notification("Payment Received", {
+      //     body: `Payment of ₹${data.amount} received from ${data.patientName}`,
+      //     icon: "/icons/payment-success.png"
+      //   });
+      // }
     });
 
     // Connection event logging
