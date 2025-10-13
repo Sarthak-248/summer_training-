@@ -22,7 +22,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173", // React dev server URL
+    origin: ["http://localhost:5173", "http://localhost:5174"], // React dev server URLs
     methods: ["GET", "POST"],
   },
 });
@@ -76,13 +76,7 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve React build (correct relative path)
-app.use(express.static(path.join(__dirname, "../client/dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
-});
-
+// API routes (must come before static files and catch-all route)
 // Public routes
 app.use("/api/appointments", patientRoutes);
 app.use("/api/auth", authRoutes);
@@ -92,6 +86,14 @@ app.use("/api/video-call", videoCallRoutes);
 
 // Protected routes
 app.use("/api/doctors", doctorRoutes);
+
+// Serve React build (correct relative path) - MUST come after API routes
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+// Catch-all route for React Router - MUST be last
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
 
 // Connect to MongoDB and start cron
 mongoose
