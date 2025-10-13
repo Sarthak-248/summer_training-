@@ -50,6 +50,43 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Test notification endpoints for debugging
+  socket.on('testNotificationToDoctor', (data) => {
+    console.log('[TEST] Sending test notification to doctor:', data);
+    const doctorSocketIds = doctorSockets[data.doctorId] || [];
+    doctorSocketIds.forEach(socketId => {
+      io.to(socketId).emit(data.event, data.data);
+      console.log(`[TEST] Emitted ${data.event} to doctor socket ${socketId}`);
+    });
+  });
+
+  socket.on('testNotificationToPatient', (data) => {
+    console.log('[TEST] Sending test notification to patient:', data);
+    const patientSocketIds = patientSockets[data.patientId] || [];
+    patientSocketIds.forEach(socketId => {
+      io.to(socketId).emit(data.event, data.data);
+      console.log(`[TEST] Emitted ${data.event} to patient socket ${socketId}`);
+    });
+  });
+
+  socket.on('testPaymentNotification', (data) => {
+    console.log('[TEST] Sending test payment notification:', data);
+    
+    // To patient
+    const patientSocketIds = patientSockets[data.patientId] || [];
+    patientSocketIds.forEach(socketId => {
+      io.to(socketId).emit('paymentReceived', data.data);
+      console.log(`[TEST] Emitted paymentReceived to patient socket ${socketId}`);
+    });
+    
+    // To doctor
+    const doctorSocketIds = doctorSockets[data.doctorId] || [];
+    doctorSocketIds.forEach(socketId => {
+      io.to(socketId).emit('paymentReceived', data.data);
+      console.log(`[TEST] Emitted paymentReceived to doctor socket ${socketId}`);
+    });
+  });
+
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
@@ -68,6 +105,7 @@ io.on('connection', (socket) => {
 // Make socket mappings available to routes
 app.set('io', io);
 app.set('doctorSockets', doctorSockets);
+app.set('patientSockets', patientSockets);
 app.set('patientSockets', patientSockets);
 
 app.use(cors());

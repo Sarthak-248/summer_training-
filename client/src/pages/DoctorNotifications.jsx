@@ -24,12 +24,17 @@ const DoctorNotifications = () => {
 
     // Register doctor socket connection
     const doctorId = localStorage.getItem('doctorId');
+    console.log('[SOCKET] Doctor registering with ID:', doctorId);
     if (doctorId) {
       socket.emit('registerDoctor', doctorId);
+      console.log('[SOCKET] Emitted registerDoctor with ID:', doctorId);
+    } else {
+      console.error('[SOCKET] No doctorId found in localStorage');
     }
 
     // Listen for new appointments
     socket.on('newAppointment', (data) => {
+      console.log('[SOCKET] Doctor received newAppointment:', data);
       const newNotification = {
         id: Date.now(),
         type: 'appointment',
@@ -39,6 +44,8 @@ const DoctorNotifications = () => {
         time: new Date().toLocaleTimeString(),
         read: false
       };
+      
+      console.log('[SOCKET] Adding appointment notification to state:', newNotification);
       // Always read latest from localStorage
       const saved = localStorage.getItem('doctorNotifications');
       const current = saved ? JSON.parse(saved) : [];
@@ -57,6 +64,7 @@ const DoctorNotifications = () => {
 
     // Listen for payment notifications
     socket.on('paymentReceived', (data) => {
+      console.log('[SOCKET] Doctor received paymentReceived:', data);
       const newNotification = {
         id: Date.now(),
         type: 'payment',
@@ -67,6 +75,8 @@ const DoctorNotifications = () => {
         time: new Date().toLocaleTimeString(),
         read: false
       };
+
+      console.log('[SOCKET] Adding payment notification to state:', newNotification);
       // Always read latest from localStorage
       const saved = localStorage.getItem('doctorNotifications');
       const current = saved ? JSON.parse(saved) : [];
@@ -81,6 +91,15 @@ const DoctorNotifications = () => {
           icon: "/icons/payment-success.png"
         });
       }
+    });
+
+    // Connection event logging
+    socket.on('connect', () => {
+      console.log('[SOCKET] Doctor connected to server');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('[SOCKET] Doctor disconnected from server');
     });
 
     return () => {

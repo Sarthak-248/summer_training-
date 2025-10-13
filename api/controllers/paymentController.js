@@ -120,6 +120,7 @@ export const verifyPayment = async (req, res) => {
     const io = req.app.get('io');
     const doctorSockets = req.app.get('doctorSockets');
     const doctorSocketIds = doctorSockets[doctor.userRef?.toString()];
+    console.log('[NOTIFY] Sending paymentReceived to doctor:', doctor.userRef?.toString(), 'socketIds:', doctorSocketIds);
     
     if (doctorSocketIds && doctorSocketIds.length > 0) {
       doctorSocketIds.forEach(socketId => {
@@ -130,6 +131,9 @@ export const verifyPayment = async (req, res) => {
           paymentId: razorpay_payment_id,
         });
       });
+      console.log('[NOTIFY] Emitted paymentReceived to doctor', doctor.userRef?.toString());
+    } else {
+      console.log('[NOTIFY] No socketId found for doctor', doctor.userRef?.toString());
     }
 
     res.json({

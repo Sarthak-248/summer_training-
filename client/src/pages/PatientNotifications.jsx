@@ -24,12 +24,17 @@ const PatientNotifications = () => {
 
     // Register patient socket connection
     const patientId = localStorage.getItem('patientId');
+    console.log('[SOCKET] Patient registering with ID:', patientId);
     if (patientId) {
       socket.emit('registerPatient', patientId);
+      console.log('[SOCKET] Emitted registerPatient with ID:', patientId);
+    } else {
+      console.error('[SOCKET] No patientId found in localStorage');
     }
 
     // Listen for appointment status updates
     socket.on('appointmentStatus', (data) => {
+      console.log('[SOCKET] Received appointmentStatus:', data);
       let message = data.message || '';
       if (!message) {
         if (data.status === 'Confirmed') {
@@ -59,6 +64,8 @@ const PatientNotifications = () => {
 
       setNotifications(prev => [newNotification, ...prev]);
 
+      console.log('[SOCKET] Adding appointment notification to state:', newNotification);
+
       // Show browser notification if permission granted
       if (Notification.permission === "granted") {
         new Notification("Appointment Update", {
@@ -68,8 +75,42 @@ const PatientNotifications = () => {
       }
     });
 
+    // Listen for payment confirmations
+    socket.on('paymentReceived', (data) => {
+      console.log('[SOCKET] Received paymentReceived:', data);
+      const message = `Payment of ₹${data.amount} received for appointment with Dr. ${data.doctorName}. Your appointment is confirmed`;
+      
+      const newNotification = {
+        id: Date.now(),
+        type: 'payment',
+        message,
+        doctorName: data.doctorName,
+        amount: data.amount,
+        time: new Date().toLocaleTimeString(),
+        read: false
+      };
+
+      console.log('[SOCKET] Adding payment notification to state:', newNotification);
+      setNotifications(prev => [newNotification, ...prev]);
+
+      // Show browser notification if permission granted  
+      if (Notification.permission === "granted") {
+        new Notification('Payment Confirmed', { body: message });
+      }
+    });
+
+    // Connection event logging
+    socket.on('connect', () => {
+      console.log('[SOCKET] Patient connected to server');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('[SOCKET] Patient disconnected from server');
+    });
+
     return () => {
       socket.off('appointmentStatus');
+      socket.off('paymentReceived');
     };
   }, []);
 
