@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { io } from 'socket.io-client/dist/socket.io.js';
+import { io } from 'socket.io-client';
 import { toast, Toaster } from 'react-hot-toast';
 import AppLogo from '../assets/logo.svg';
 
