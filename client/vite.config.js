@@ -5,6 +5,10 @@ import react from '@vitejs/plugin-react-swc';
 export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom'],
+    alias: {
+      // Ensure Vite/Rollup resolves socket.io-client to the bundled dist file
+      'socket.io-client': 'socket.io-client/dist/socket.io.js',
+    },
   },
   server: {
     proxy: {
