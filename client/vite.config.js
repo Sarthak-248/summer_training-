@@ -6,6 +6,14 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom'],
   },
+  optimizeDeps: {
+    include: ['socket.io-client'],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/socket\.io-client/, /node_modules/],
+    },
+  },
   server: {
     proxy: {
       '/api': {
