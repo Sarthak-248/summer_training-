@@ -1,33 +1,26 @@
-FROM node:18-bullseye
+# Use official Node.js LTS Alpine image for smaller size and faster builds
+FROM node:18-alpine
 
-# Install system dependencies for Tesseract and Poppler
-RUN apt-get update && apt-get install -y \
-  python3 \
-  python3-pip \
-  python3-venv \
-  tesseract-ocr \
-  poppler-utils \
-  && rm -rf /var/lib/apt/lists/*
+# Install Python3, pip, Tesseract OCR, and Poppler-utils
+RUN apk add --no-cache python3 py3-pip tesseract-ocr poppler-utils
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files first for caching
-COPY package.json package-lock.json* ./
+COPY package*.json ./
 
 # Install Node.js dependencies
-RUN npm install
+RUN npm install --only=production
+
+# Copy requirements.txt and install Python dependencies
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .
 
-# Install Python dependencies
-# Check if requirements.txt exists and install
-RUN if [ -f requirements.txt ]; then \
-      pip3 install -r requirements.txt; \
-    fi
-
-# Expose the port
+# Expose the port (Render will override with PORT env var)
 EXPOSE 10000
 
 # Start the application

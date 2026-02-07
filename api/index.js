@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import helmet from "helmet";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -121,13 +122,19 @@ app.use(cors({
   origin: allowedOrigins,
   credentials: true
 }));
-app.use(express.json());
+app.use(helmet());
+app.use(express.json({ limit: '10mb' })); // Safe limit for medical files
 
 // Paths for __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // API routes (must come before static files and catch-all route)
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Public routes
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/appointments", patientRoutes);
@@ -163,6 +170,12 @@ mongoose
     reminderScheduler();
   })
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+
+// Global error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, "0.0.0.0", () =>
