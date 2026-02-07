@@ -30,6 +30,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get update && apt-get install -y nodejs \
     && npm --version
 
+
+# Copy client package files, install client deps and build frontend
+COPY client/package*.json ./client/
+RUN npm install --prefix client --silent --no-audit --no-fund
+RUN npm run build --prefix client
+
 # Install Node dependencies for the API (production only)
 RUN npm install --production --silent --no-audit --no-fund || npm install --silent --no-audit --no-fund
 
