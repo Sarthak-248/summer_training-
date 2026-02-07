@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client/dist/socket.io.js';
+import { io } from 'socket.io-client/dist/socket.io.esm.js';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
