@@ -1,0 +1,11 @@
+services:
+  - type: static_site
+    name: healthcard-frontend
+    env: node
+    branch: master
+    buildCommand: "npm install --prefix client && npm run build --prefix client"
+    publishPath: client/dist
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        value: https://healthcard-backend-zsx7.onrender.com
