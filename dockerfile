@@ -1,8 +1,8 @@
 # Use official Node.js LTS Alpine image for smaller size and faster builds
 FROM node:18-alpine
 
-# Install Python3, pip, Tesseract OCR, and Poppler-utils
-RUN apk add --no-cache python3 py3-pip tesseract-ocr poppler-utils
+# Install Python3, pip, Tesseract OCR, Poppler-utils, and build tools
+RUN apk add --no-cache python3 py3-pip tesseract-ocr poppler-utils build-base
 
 # Set working directory
 WORKDIR /app
