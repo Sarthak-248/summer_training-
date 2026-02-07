@@ -38,8 +38,13 @@ RUN python3 -m pip install --upgrade pip setuptools wheel \
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port (Render will override with PORT env var)
-EXPOSE 10000
+# Default port and expose (Render will override with PORT env var)
+ENV PORT=5000
+EXPOSE 5000
 
-# Start the application
-CMD ["npm", "start"]
+# Simple healthcheck so platforms can detect readiness
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Start the application directly (runs server at api/index.js)
+CMD ["node", "api/index.js"]
