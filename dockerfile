@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # Install Python3, pip, Tesseract OCR, Poppler-utils, and build tools
-RUN apk add --no-cache python3 py3-pip tesseract-ocr poppler-utils build-base
+RUN apk add --no-cache python3 py3-pip python3-dev tesseract-ocr poppler-utils build-base
 
 # Set working directory
 WORKDIR /app
