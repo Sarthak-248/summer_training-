@@ -5,8 +5,8 @@ FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y \
     # Python ecosystem
     python3 python3-pip python3-dev python3-setuptools \
-    # Node.js ecosystem
-    nodejs npm \
+    # Node.js ecosystem tools (install Node 18 later via NodeSource)
+    curl gnupg2 ca-certificates \
     # OCR and PDF processing
     tesseract-ocr tesseract-ocr-eng poppler-utils \
     # Build tools for compiling packages
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     # Scientific computing libraries (BLAS, LAPACK)
     libblas-dev liblapack-dev libatlas-base-dev \
     # Additional libraries for ML and image processing
-    libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 \
+    libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 pkg-config \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -22,10 +22,13 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy package files first for caching
+# Copy package files first for caching
 COPY package*.json ./
 
-# Install Node.js dependencies
-RUN npm install --only=production
+# Install Node.js 18 (LTS) from NodeSource for predictable Node version
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get update && apt-get install -y nodejs \
+    && npm --version
 
 # Copy requirements.txt and install Python dependencies
 COPY requirements.txt ./
