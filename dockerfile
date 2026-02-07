@@ -32,7 +32,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 
 # Copy requirements.txt and install Python dependencies
 COPY requirements.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install --upgrade pip setuptools wheel \
+    && pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .
