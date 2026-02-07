@@ -31,8 +31,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && npm --version
 
 
-# Copy client package files, install client deps and build frontend
-COPY client/package*.json ./client/
+# Copy the entire client source so Vite can find index.html, install deps and build
+COPY client/ ./client/
 RUN npm install --prefix client --silent --no-audit --no-fund
 RUN npm run build --prefix client
 
