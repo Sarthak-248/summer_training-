@@ -1,8 +1,12 @@
-# Use official Node.js LTS Alpine image for smaller size and faster builds
-FROM node:18-alpine
+# Use Ubuntu 22.04 for better ML library compatibility
+FROM ubuntu:22.04
 
-# Install Python3, pip, Tesseract OCR, Poppler-utils, and build tools
-RUN apk add --no-cache python3 py3-pip python3-dev tesseract-ocr poppler-utils build-base
+# Install system dependencies for Tesseract, Poppler, Python, and build tools
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-dev \
+    tesseract-ocr poppler-utils \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -15,7 +19,7 @@ RUN npm install --only=production
 
 # Copy requirements.txt and install Python dependencies
 COPY requirements.txt ./
-RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .
