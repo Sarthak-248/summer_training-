@@ -1,12 +1,22 @@
 # Use Ubuntu 22.04 for better ML library compatibility
 FROM ubuntu:22.04
 
-# Install system dependencies for Tesseract, Poppler, Python, and build tools
+# Install ALL required system dependencies in one command
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip python3-dev \
-    tesseract-ocr poppler-utils \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    # Python ecosystem
+    python3 python3-pip python3-dev python3-setuptools \
+    # Node.js ecosystem
+    nodejs npm \
+    # OCR and PDF processing
+    tesseract-ocr tesseract-ocr-eng poppler-utils \
+    # Build tools for compiling packages
+    build-essential gcc g++ make \
+    # Scientific computing libraries (BLAS, LAPACK)
+    libblas-dev liblapack-dev libatlas-base-dev \
+    # Additional libraries for ML and image processing
+    libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 libgthread-2.0-0 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Set working directory
 WORKDIR /app
