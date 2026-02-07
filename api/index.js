@@ -33,6 +33,7 @@ const allowedOrigins = [
   "http://127.0.0.1:5176",
   "http://127.0.0.1:5177",
   "http://localhost:5177",
+  "https://healthcard-y14j.onrender.com",
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
