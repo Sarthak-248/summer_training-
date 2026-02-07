@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     # Scientific computing libraries (BLAS, LAPACK)
     libblas-dev liblapack-dev libatlas-base-dev \
     # Additional libraries for ML and image processing
-    libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 libgthread-2.0-0 \
+    libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
