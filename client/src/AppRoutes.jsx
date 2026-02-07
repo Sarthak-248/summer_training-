@@ -24,7 +24,6 @@ import ScheduledAppointment from "./pages/scheduledAppointments";
 import PatientHistory from "./pages/PatientHistory";
 import ConsultHistory from "./pages/ConsultHistory";
 import Analyze from "./pages/Analyze";
-import patientAbout from "./pages/patientAbout";
 import VideoCallPage from "./pages/VideoCallPage";
 import PatientAbout from "./pages/PatientAbout";
 
@@ -80,7 +79,7 @@ const AppRoutes = () => {
       <Route path="/signup" element={<Signup />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/video-call/:appointmentId" element={<VideoCallPage />} />
-      <Route path="/patientabout" element={<patientAbout />} />
+      <Route path="/patientabout" element={<PatientAbout />} />
       
 
       {/* Fallback: redirect unknown routes to root */}
