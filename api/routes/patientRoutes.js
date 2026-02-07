@@ -24,7 +24,7 @@ router.post("/post-history",authenticate,postHistory);
 // // Get All Favorites
 
 router.get("/profile", authenticate, getPatientProfile);
-router.put("/profile", authenticate, parser.single("photo"), updatePatientProfile);
+router.put("/profile", authenticate, localUpload.single("photo"), updatePatientProfile);
 router.post("/analyze-report", localUpload.single("report"), analyzeReport);
 
 export default router;

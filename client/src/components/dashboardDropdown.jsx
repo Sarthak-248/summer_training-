@@ -49,6 +49,21 @@ const DashboardDropdown = () => {
                     transform origin-top-left
                     ${dropdownOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible"}`}
       >
+        <div className="py-2">
+          <button
+            onClick={() => {
+              setDropdownOpen(false);
+              navigate("/patient/consult-history");
+            }}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            📜 Consult History
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};      >
         <button
           onClick={() => {
             navigate("/patient/post-history");

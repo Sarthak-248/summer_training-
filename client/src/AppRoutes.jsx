@@ -22,9 +22,11 @@ import UpcomingAppointments from "./pages/UpcomingAppointments";
 import PatientDashboard from "./components/patientDashboard";
 import ScheduledAppointment from "./pages/scheduledAppointments";
 import PatientHistory from "./pages/PatientHistory";
+import ConsultHistory from "./pages/ConsultHistory";
 import Analyze from "./pages/Analyze";
+import patientAbout from "./pages/patientAbout";
 import VideoCallPage from "./pages/VideoCallPage";
-import { useState, useEffect } from "react";
+import PatientAbout from "./pages/PatientAbout";
 
 
 const AppRoutes = () => {
@@ -49,7 +51,8 @@ const AppRoutes = () => {
       {/* Doctor routes with DoctorLayout */}
       <Route path="/doctor" element={<DoctorLayout />}>
         <Route path="home" element={<DoctorHome />} />
-        <Route path="scheduled-appointments" element={<ScheduledAppointment />}/>  
+        <Route path="scheduled-appointments" element={<ScheduledAppointment />}/>
+        <Route path="consult-history" element={<ConsultHistory />} />
         <Route path="/doctor/patienthistory/:id" element={<PatientHistory />} />       
         <Route path="set-availability" element={<ProfileSettings />} />
         <Route path="notifications" element={<DoctorNotifications />} />
@@ -62,10 +65,11 @@ const AppRoutes = () => {
         <Route path="home" element={<PatientHome />} />
         <Route path="appointments" element={<BookAppointment />} />
         
+        <Route path="consult-history" element={<ConsultHistory />} />
         <Route  path="post-history" element={<PatientDashboard />} />
         <Route path="analyze-report" element={<Analyze />} />
         <Route path="favorites" element={<Favorite />} />
-        <Route path="about" element={<About />} />
+        <Route path="about" element={<PatientAbout />} />
          <Route path="appointments/upcoming" element={<UpcomingAppointments />} />
         <Route path="notifications" element={<PatientNotifications />} />
 
@@ -76,7 +80,7 @@ const AppRoutes = () => {
       <Route path="/signup" element={<Signup />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/video-call/:appointmentId" element={<VideoCallPage />} />
-  
+      <Route path="/patientabout" element={<patientAbout />} />
       
 
       {/* Fallback: redirect unknown routes to root */}

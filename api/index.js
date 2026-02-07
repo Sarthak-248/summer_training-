@@ -20,9 +20,24 @@ import jwt from "jsonwebtoken";
 
 const app = express();
 const httpServer = createServer(app);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "http://localhost:5176",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://127.0.0.1:5175",
+  "http://127.0.0.1:5176",
+  "http://127.0.0.1:5177",
+  "http://localhost:5177",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"], // React dev server URLs
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
@@ -37,10 +52,13 @@ io.on("connection", (socket) => {
 
   // Register doctor socket
   socket.on("registerDoctor", (doctorId) => {
+    console.log(`[SOCKET] Register request from Doctor ID: ${doctorId} (Type: ${typeof doctorId})`);
     if (!doctorSockets[doctorId]) doctorSockets[doctorId] = [];
     if (!doctorSockets[doctorId].includes(socket.id)) {
       doctorSockets[doctorId].push(socket.id);
     }
+    socket.join("doctors"); // Join doctors room
+    console.log(`[SOCKET] Doctor ${doctorId} registered with socket ${socket.id}. Current map keys: ${Object.keys(doctorSockets)}`);
   });
 
   // Register patient socket
@@ -49,7 +67,37 @@ io.on("connection", (socket) => {
     if (!patientSockets[patientId].includes(socket.id)) {
       patientSockets[patientId].push(socket.id);
     }
+    socket.join("patients"); // Join patients room
+    console.log(`Patient ${patientId} joined 'patients' room`);
   });
+
+  // --- Video Call Signaling (WebRTC) ---
+  socket.on("join-video-room", (roomId) => {
+    socket.join(roomId);
+    console.log(`User ${socket.id} joined video room ${roomId}`);
+    
+    // Acknowledge join
+    socket.emit("room-joined", roomId);
+
+    // Notify existing users in the room so they can initiate a connection
+    const clients = io.sockets.adapter.rooms.get(roomId);
+    if (clients && clients.size > 1) {
+       socket.to(roomId).emit("user-connected", socket.id);
+    }
+  });
+
+  socket.on("offer", ({ offer, roomId }) => {
+    socket.to(roomId).emit("offer", { offer, senderId: socket.id });
+  });
+
+  socket.on("answer", ({ answer, roomId }) => {
+    socket.to(roomId).emit("answer", { answer, senderId: socket.id });
+  });
+
+  socket.on("ice-candidate", ({ candidate, roomId }) => {
+    socket.to(roomId).emit("ice-candidate", { candidate, senderId: socket.id });
+  });
+  // -------------------------------------
 
   // Handle disconnect
   socket.on("disconnect", () => {
@@ -69,7 +117,10 @@ app.set("io", io);
 app.set("doctorSockets", doctorSockets);
 app.set("patientSockets", patientSockets);
 
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json());
 
 // Paths for __dirname in ES module
@@ -78,6 +129,7 @@ const __dirname = path.dirname(__filename);
 
 // API routes (must come before static files and catch-all route)
 // Public routes
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/appointments", patientRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/patient", patientRoutes);
@@ -87,13 +139,18 @@ app.use("/api/video-call", videoCallRoutes);
 // Protected routes
 app.use("/api/doctors", doctorRoutes);
 
-// Serve React build (correct relative path) - MUST come after API routes
-app.use(express.static(path.join(__dirname, "../client/dist")));
+// Serve React build - ONLY in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../client/dist")));
 
-// Catch-all route for React Router - MUST be last
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
-});
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.send("API is running...");
+  });
+}
 
 // Connect to MongoDB and start cron
 mongoose

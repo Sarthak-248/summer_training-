@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-black text-white p-10 flex items-center justify-center">
+    <div className="w-full text-white p-10 pt-1 flex justify-center">
       <div className="max-w-5xl w-full bg-white/10 backdrop-blur-md p-10 rounded-3xl shadow-2xl border border-white/20">
         <h1 className="text-4xl md:text-5xl font-extrabold text-center text-pink-400 mb-8 tracking-wide">
-          About Our Doctor’s Portal
+          About Healthcard
         </h1>
 
         <p className="text-lg text-purple-100 leading-relaxed mb-6">
-          At <span className="font-bold text-pink-400">Health Care Companion</span>, we believe that access to quality healthcare begins with <span className="text-white font-medium">trusted information and real connections</span>. Our Doctor's Portal is designed to bridge the gap between <span className="font-medium text-white">healthcare professionals</span> and the communities they serve.
+          At <span className="font-bold text-pink-400">HealthCard</span>, we believe that access to quality healthcare begins with <span className="text-white font-medium">trusted information and real connections</span>. Our Doctor's Portal is designed to bridge the gap between <span className="font-medium text-white">healthcare professionals</span> and the communities they serve.
         </p>
 
         <h2 className="text-2xl text-pink-300 font-semibold mt-6 mb-2">🌟 Our Mission</h2>
@@ -26,7 +26,7 @@ const About = () => {
           <li>Strengthen your online presence with trusted reviews and insights.</li>
         </ul>
 
-        <h2 className="text-2xl text-pink-300 font-semibold mt-6 mb-2">💡 Why Join Health Care Companion?</h2>
+        <h2 className="text-2xl text-pink-300 font-semibold mt-6 mb-2">💡 Why Join HealthCard</h2>
         <ul className="grid md:grid-cols-2 gap-4 text-purple-100 mb-6">
           <li>🔍 <span className="font-semibold text-white">Enhanced Visibility</span> – Be part of a curated network searched by thousands.</li>
           <li>📢 <span className="font-semibold text-white">Professional Branding</span> – Highlight your services with rich profiles.</li>
@@ -36,7 +36,7 @@ const About = () => {
 
         <h2 className="text-2xl text-pink-300 font-semibold mt-6 mb-4">🤝 Building Trust. Saving Time. Supporting Health.</h2>
         <p className="text-purple-100 mb-10">
-          With <span className="font-bold text-pink-400">Health Care Companion</span>, patients make informed decisions, and doctors grow with digital tools that <span className="text-white font-medium">put care at the center</span>. Our platform is more than a directory — it's a community committed to better healthcare access and excellence in service.
+          With <span className="font-bold text-pink-400">HealthCard</span>, patients make informed decisions, and doctors grow with digital tools that <span className="text-white font-medium">put care at the center</span>. Our platform is more than a directory — it's a community committed to better healthcare access and excellence in service.
         </p>
 
         {/* Back to Home Button */}

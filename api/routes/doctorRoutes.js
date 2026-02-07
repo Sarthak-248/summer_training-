@@ -17,17 +17,19 @@ import {
   //tAvailableDoctors//nt this for /availability/:doctorId
 } from "../controllers/doctorController.js";
 import { verifyDoctor, authenticate } from "../middlewares/authMiddleware.js";
-import parser from "../middlewares/multerCloudinary.js";
+import parser from "../middlewares/localMulter.js";
 import { getMyProfile } from "../controllers/doctorController.js";
 import { updateDoctorProfile } from "../controllers/doctorController.js";
 import { updatePatientProfile } from "../controllers/patientController.js";
 import { getDoctorSlotsForDate } from "../controllers/doctorController.js";
+import { deleteAvailability } from "../controllers/doctorController.js";
 
 
 
 const router = express.Router();
 
 router.post("/set-availability", authenticate, verifyDoctor, setAvailability);
+router.post("/delete-availability", authenticate, verifyDoctor, deleteAvailability);
 
 // Route to get availability of a specific doctor by ID
 router.get("/availability/:doctorId", getAvailableDoctors);

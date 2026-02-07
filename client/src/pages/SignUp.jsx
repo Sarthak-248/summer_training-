@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
+import AppLogo from '../assets/logo.svg';
 
 const Signup = () => {
     const [name, setName] = useState("");
@@ -14,21 +16,23 @@ const handleSignup = async (e) => {
     setError("");
 
     try {
-        await axios.post("http://localhost:5000/api/auth/signup", {
+        await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/signup`, {
             name,
             email,
             password,
             role: role.toLowerCase(), // 🛠️ Ensure it's valid
         });
+        showSuccessToast('Account Created!', 'Please sign in with your new credentials.');
         navigate("/login");
     } catch (error) {
         console.error("Signup Error:", error);
         setError(error.response?.data?.error || "Signup failed. Try again.");
+        showErrorToast(error.response?.data?.error || "Signup failed. Try again.");
     }
 };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 relative overflow-hidden">
+        <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-4 relative overflow-hidden">
             {/* Animated Background Elements */}
             <div className="absolute inset-0">
                 <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
@@ -39,10 +43,8 @@ const handleSignup = async (e) => {
             <div className="relative z-10 bg-white/10 backdrop-blur-xl p-10 rounded-3xl shadow-2xl border border-white/20 w-full max-w-md">
                 {/* Header with Icon */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mb-4 shadow-2xl">
-                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
+                    <div className="inline-flex items-center justify-center w-28 h-28 mb-4 transition-transform hover:scale-105 duration-300">
+                        <img src={AppLogo} alt="HealthCard Logo" className="w-full h-full object-contain drop-shadow-2xl" />
                     </div>
                     <h2 className="text-4xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-lg">Create Account</h2>
                     <p className="text-blue-200 mt-2">Join Health Care Companion today</p>
@@ -131,7 +133,7 @@ const handleSignup = async (e) => {
 
                     <button
                         type="submit"
-                        className="group relative mt-4 font-bold py-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 transform hover:scale-105 overflow-hidden"
+                        className="group relative mt-4 font-bold py-4 bg-pink-400 hover:bg-pink-500 text-white rounded-xl shadow-2xl hover:shadow-pink-400/50 transition-all duration-300 transform hover:scale-105 overflow-hidden"
                     >
                         <span className="relative z-10 flex items-center justify-center gap-2">
                             <svg className="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +141,7 @@ const handleSignup = async (e) => {
                             </svg>
                             Create Account
                         </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        {/* Removed blue hover overlay to keep button pink on hover */}
                     </button>
                 </form>
 

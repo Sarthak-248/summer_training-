@@ -44,6 +44,15 @@ const ProfileDropdown = () => {
           <button
             onClick={() => {
               setOpen(false);
+              navigate('/doctor/consult-history');
+            }}
+            className="block w-full text-left px-4 py-2 hover:bg-blue-800 transition-colors duration-200"
+          >
+            Consult History
+          </button>
+          <button
+            onClick={() => {
+              setOpen(false);
               // Navigate to your create listing page or placeholder
               navigate('/doctor/create-listing');
             }}

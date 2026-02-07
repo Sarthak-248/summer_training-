@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 export const bookAppointment = async (req, res) => {
   try {
     const { doctorId } = req.params;
-    const { patientName, patientContact, appointmentTime, reason } = req.body;
+    const { patientName, patientContact, appointmentTime, appointmentEndTime, reason } = req.body;
 
     if (!patientName || !patientContact || !appointmentTime) {
       return res.status(400).json({ message: 'All fields are required.' });
@@ -24,10 +24,15 @@ export const bookAppointment = async (req, res) => {
     const doctor = await Doctor.findById(doctorId);
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
 
+    // Fallback logic for endTime if not provided (default 1 hour)
+    const start = new Date(appointmentTime);
+    const end = appointmentEndTime ? new Date(appointmentEndTime) : new Date(start.getTime() + 60 * 60 * 1000);
+
     doctor.appointments.push({
       patientName,
       patientContact,
-      appointmentTime: new Date(appointmentTime),
+      appointmentTime: start,
+      appointmentEndTime: end,
       reason,
       patientRef: req.user._id,
     });
@@ -37,8 +42,15 @@ export const bookAppointment = async (req, res) => {
     // --- Socket.IO Notification to Doctor ---
     const io = req.app.get("io");
     const doctorSockets = req.app.get("doctorSockets");
-    const doctorSocketIds = doctorSockets[doctorId];
-    console.log('[NOTIFY] doctorId:', doctorId, 'doctorSocketIds:', doctorSocketIds);
+    
+    // Ensure doctorId is a string for lookup
+    const targetDoctorId = String(doctorId);
+    const doctorSocketIds = doctorSockets[targetDoctorId];
+    
+    console.log(`[NOTIFY DEBUG] Booking for Doctor: ${targetDoctorId}`);
+    console.log(`[NOTIFY DEBUG] Available Doctor Sockets Map Keys: ${Object.keys(doctorSockets)}`);
+    console.log(`[NOTIFY DEBUG] Found Socket IDs: ${doctorSocketIds}`);
+
     if (doctorSocketIds && doctorSocketIds.length > 0) {
       doctorSocketIds.forEach(socketId => {
         io.to(socketId).emit("newAppointment", {
@@ -47,9 +59,9 @@ export const bookAppointment = async (req, res) => {
           reason,
         });
       });
-      console.log('[NOTIFY] Emitted newAppointment to doctor', doctorId);
+      console.log(`[NOTIFY] Emitted newAppointment to doctor ${targetDoctorId} on sockets: ${doctorSocketIds}`);
     } else {
-      console.log('[NOTIFY] No socketId found for doctor', doctorId);
+      console.log(`[NOTIFY] FAILED: No active socket found for doctor ${targetDoctorId}`);
     }
     // --- End Notification ---
 
@@ -89,6 +101,7 @@ export const getMyAppointments = async (req, res) => {
             patientName: appt.patientName,
             contact: appt.patientContact,
             date: appt.appointmentTime,
+            endTime: appt.appointmentEndTime,
             reason: appt.reason,
             status: appt.status,
             rejectionReason: appt.rejectionReason,
@@ -337,29 +350,43 @@ export const getPatientProfile = async (req, res) => {
 
 // Update patient profile
 export const updatePatientProfile = async (req, res) => {
-  const updates = { ...req.body };
-  delete updates.name;
-  delete updates.email;
-  delete updates.role;
+  try {
+    const updates = { ...req.body };
+    delete updates.name;
+    delete updates.email;
+    delete updates.role;
 
-  // Remove gender if empty or invalid
-const allowedGenders = ["Male", "Female", "Other"];
-if (!allowedGenders.includes(updates.gender)) {
-  delete updates.gender;
-}
+    // Remove gender if empty or invalid
+    const allowedGenders = ["Male", "Female", "Other"];
+    if (!allowedGenders.includes(updates.gender)) {
+      delete updates.gender;
+    }
 
-  // If photo uploaded, set photo field
-  if (req.file && req.file.path) {
-    updates.photo = req.file.path;
+    // Debug log file upload
+    if (req.file) {
+      console.log("[DEBUG] File upload detected:", req.file);
+    } else {
+      console.log("[DEBUG] No file uploaded");
+    }
+
+    // If photo uploaded, set photo field
+    if (req.file && req.file.path) {
+      // Convert local path to URL
+      const relativePath = path.relative(path.join(__dirname, '..'), req.file.path).replace(/\\/g, '/');
+      updates.photo = `/${relativePath}`;
+    }
+
+    const patient = await Patient.findByIdAndUpdate(
+      req.user._id,
+      updates,
+      { new: true, runValidators: true }
+    );
+    if (!patient) return res.status(404).json({ message: "Patient not found" });
+    res.json(patient);
+  } catch (err) {
+    console.error("[ERROR] updatePatientProfile:", err);
+    res.status(500).json({ message: "Internal server error", error: err.message });
   }
-
-  const patient = await Patient.findByIdAndUpdate(
-    req.user._id,
-    updates,
-    { new: true, runValidators: true }
-  );
-  if (!patient) return res.status(404).json({ message: "Patient not found" });
-  res.json(patient);
 };
 
 // import path from "path";
@@ -385,10 +412,15 @@ export const analyzeReport = (req, res) => {
   const filePath = path.resolve(req.file.path);
   const scriptPath = path.resolve(__dirname, "../ml/model_predictor.py");
 
+  // Path to the Python executable in the virtual environment at the project root
+  const venvPythonPath = path.resolve(__dirname, "../../.venv/Scripts/python.exe");
+  
   console.log("📂 Resolved file path:", filePath);
+  console.log("📜 Script path:", scriptPath);
+  console.log("🐍 Python path:", venvPythonPath);
 
-  // Wrap paths in quotes to support spaces in paths
-const command = `"C:\\Users\\sarthak\\OneDrive\\Desktop\\tom\\summer_training-\\api\\myenv\\Scripts\\python.exe" "${scriptPath}" "${filePath}"`;
+  // Use the venv python interpreter
+  const command = `"${venvPythonPath}" "${scriptPath}" "${filePath}"`;
 
   exec(command, (err, stdout, stderr) => {
     if (stderr) {
@@ -397,25 +429,46 @@ const command = `"C:\\Users\\sarthak\\OneDrive\\Desktop\\tom\\summer_training-\\
 
     console.log("🐍 Raw Python output:", stdout);
 
-    if (err) {
-      console.error("❌ Exec error:", err);
-      return res.status(500).json({
-        error: "Failed to analyze report",
-        details: stdout || stderr || err.message,
-      });
-    }
-
+    // Attempt to parse the output even if there's an error code,
+    // as the script might describe the error in JSON.
+    let result;
     try {
-      const result = JSON.parse(stdout);
-      console.log("✅ Parsed result:", result);
-      return res.json(result);
+      // Clean up stdout: sometimes libraries print warnings to stdout. 
+      // We take the last non-empty line.
+      const lines = stdout.trim().split('\n');
+      const lastLine = lines[lines.length - 1];
+      result = JSON.parse(lastLine);
     } catch (parseError) {
       console.error("❌ JSON parse error:", parseError.message);
+      // If we can't parse JSON and there was an error, return generic error
+      if (err) {
+        return res.status(500).json({
+           error: "Failed to analyze report",
+           details: stderr || err.message,
+        });
+      }
       return res.status(500).json({
         error: "Invalid response from Python script",
         rawOutput: stdout,
       });
     }
+
+    if (result.error) {
+       console.error("❌ Script returned error:", result.error);
+       
+       // improved status codes for specific errors
+       if (result.error.includes("Missing values")) {
+         return res.status(422).json(result); // Unprocessable Entity
+       }
+       if (result.error.includes("format") || result.error.includes("supported")) {
+         return res.status(400).json(result); // Bad Request
+       }
+       
+       return res.status(500).json(result);
+    }
+
+    console.log("✅ Parsed result:", result);
+    return res.json(result);
   });
 };
 

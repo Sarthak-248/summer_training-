@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import toast from 'react-hot-toast';
 
  // ✅ Required to use navigate()
 
@@ -10,8 +11,7 @@ const questions = [
   "Are you currently taking any medications (if any, write below)?",
   "Do you have any chronic illnesses?",
   "Have you had any surgeries before?",
-  "Do you have a family history of any diseases?",
-  "Type 'I will comeback stronger!!'"
+  "Do you have a family history of any diseases?"
 ];
 
 const PatientDashboard = () => {
@@ -59,28 +59,28 @@ const saveMedicalHistory = async () => {
       }
     );
     navigate("/patient/home");
-    alert("Medical history saved! Thank you.");
+    toast.success("Medical history saved! Thank you.");
     setCurrentQIndex(0);
     setAnswers({});
    
 
   } catch (err) {
     console.error("Error saving medical history:", err);
-    alert("An error occurred while saving your data.");
+    toast.error("An error occurred while saving your data.");
   }
 };
 
   const progressPercent = ((currentQIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="w-full flex items-center justify-center p-4 relative overflow-hidden pt-2">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
         <div className="absolute w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      <div className="relative z-10 max-w-2xl w-full mx-auto mt-20 p-10 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20">
+      <div className="relative z-10 max-w-2xl w-full mx-auto mt-2 p-10 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-block p-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-4">

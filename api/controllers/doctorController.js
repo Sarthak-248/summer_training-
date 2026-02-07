@@ -36,7 +36,7 @@ export const createDoctorListing = async (req, res) => {
       linkedIn,
       awards,
       services,
-      imageUrl: req.file?.path,
+      imageUrl: req.file ? (req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`) : undefined,
       userRef: userId,
     };
 
@@ -48,8 +48,26 @@ export const createDoctorListing = async (req, res) => {
 
     const doctor = new Doctor(doctorData);
     await doctor.save();
+
+    // --- Socket.IO Notification to All Patients ---
+    try {
+      const io = req.app.get("io");
+      io.to("patients").emit("newDoctorListing", {
+        message: `New Doctor Available: Dr. ${doctor.name} (${doctor.specialty})`,
+        doctorName: doctor.name,
+        specialty: doctor.specialty,
+        doctorId: doctor._id,
+        createdAt: new Date()
+      });
+      console.log('Emitted newDoctorListing event to patients room');
+    } catch (socketError) {
+      console.error('Socket emission failed:', socketError);
+    }
+    // ---------------------------------------------
+
     res.status(201).json(doctor);
   } catch (error) {
+    console.error("Create listing error:", error);
     if (error.name === "ValidationError") {
       return res.status(400).json({ message: error.message });
     }
@@ -113,8 +131,8 @@ if (!allowedGenders.includes(updates.gender)) {
           : []);
 
     // If image uploaded
-    if (req.file && req.file.path) {
-      updates.imageUrl = req.file.path;
+    if (req.file) {
+      updates.imageUrl = req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`;
     }
 
     const doctor = await Doctor.findOneAndUpdate(
@@ -128,10 +146,11 @@ if (!allowedGenders.includes(updates.gender)) {
     }
     res.json(doctor);
   } catch (error) {
+    console.error("Update profile error:", error);
     if (error.name === "ValidationError") {
       return res.status(400).json({ message: error.message });
     }
-    res.status(500).json({ message: "Failed to create doctor profile" });
+    res.status(500).json({ message: "Failed to update doctor profile" });
   }
 };
 
@@ -310,6 +329,33 @@ export const getDoctorSlotsForDate = async (req, res) => {
 
     res.json({ slots, booked });
   } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// DELETE doctor availability slot
+export const deleteAvailability = async (req, res) => {
+  try {
+    const { day, start, end } = req.body;
+    const userId = req.user._id;
+
+    const doctor = await Doctor.findOne({ userRef: userId });
+    if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+
+    const daySlot = doctor.availability.find(d => d.day === day);
+    if (daySlot) {
+      daySlot.slots = daySlot.slots.filter(
+        slot => !(slot.start === start && slot.end === end)
+      );
+      if (daySlot.slots.length === 0) {
+        doctor.availability = doctor.availability.filter(d => d.day !== day);
+      }
+      await doctor.save();
+    }
+
+    res.json({ message: "Slot deleted successfully", availability: doctor.availability });
+  } catch (error) {
+    console.error("Delete availability error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

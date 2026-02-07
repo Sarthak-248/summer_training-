@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from 'react-hot-toast';
 
 const DoctorProfile = ({ doctorId }) => {
     const [availableSlots, setAvailableSlots] = useState([]);
@@ -29,8 +30,11 @@ const DoctorProfile = ({ doctorId }) => {
 
     const handleSave = () => {
         axios.post("/api/doctors/set-availability", { doctorId, availableSlots })
-            .then(() => alert("Availability updated successfully"))
-            .catch(error => console.error("Error updating availability:", error));
+            .then(() => toast.success("Availability updated successfully"))
+            .catch(error => {
+                console.error("Error updating availability:", error);
+                toast.error("Failed to update availability");
+            });
     };
 
     return (

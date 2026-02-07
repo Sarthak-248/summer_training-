@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from 'react-hot-toast';
 
 const daysOrder = [
   "Monday",
@@ -12,7 +13,6 @@ const daysOrder = [
 
 const ProfileSettings = () => {
   const [availableSlots, setAvailableSlots] = useState([{ day: "", start: "", end: "" }]);
-  const [message, setMessage] = useState("");
   const [allSlots, setAllSlots] = useState([]);
 
   // Fetch all slots on mount
@@ -21,13 +21,13 @@ const ProfileSettings = () => {
     const fetchAllSlots = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/doctors/my-profile", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/my-profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         setAllSlots(data.availability || []);
       } catch (err) {
-        setMessage("Failed to load slots");
+        toast.error("Failed to load slots");
       }
     };
     fetchAllSlots();
@@ -51,7 +51,7 @@ const ProfileSettings = () => {
   const handleDeleteSetSlot = async (day, start, end) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/doctors/delete-availability", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/delete-availability`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,15 +60,15 @@ const ProfileSettings = () => {
         body: JSON.stringify({ day, start, end }),
       });
       const respData = await response.json();
-      setMessage(respData.message || "Slot deleted successfully");
+      toast.success(respData.message || "Slot deleted successfully");
     // Refresh all slots
-    const res = await fetch("http://localhost:5000/api/doctors/my-profile", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/my-profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
     setAllSlots(data.availability || []);
   } catch (error) {
-    setMessage("Failed to delete slot. Please try again.");
+    toast.error("Failed to delete slot. Please try again.");
   }
   };
 
@@ -76,7 +76,7 @@ const ProfileSettings = () => {
     try {
       const token = localStorage.getItem("token");
       // 1. Fetch current slots
-      const res = await fetch("http://localhost:5000/api/doctors/my-profile", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/my-profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -111,7 +111,7 @@ const ProfileSettings = () => {
       const availability = Object.entries(grouped).map(([day, slots]) => ({ day, slots }));
 
       // 4. Save merged slots
-      const response = await fetch("http://localhost:5000/api/doctors/set-availability", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/set-availability`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,14 +121,14 @@ const ProfileSettings = () => {
       });
 
       const respData = await response.json();
-      setMessage(respData.message || "Slots saved successfully");
+      toast.success(respData.message || "Slots saved successfully");
     } catch (error) {
-      setMessage("Failed to save slots. Please try again.");
+      toast.error("Failed to delete slot. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-6 md:p-10 text-white relative overflow-hidden">
+    <div className="w-full p-6 md:p-10 text-white relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
@@ -138,18 +138,7 @@ const ProfileSettings = () => {
 
       {/* Main Container */}
       <div className="relative z-10 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-4 shadow-2xl">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-lg">
-            Set Your Available Time Slots
-          </h1>
-          <p className="text-blue-200 text-lg mt-2">Manage your weekly availability schedule</p>
-        </div>
+        
 
         {/* Show upcoming slots */}
         <div className="mb-8 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6">
@@ -343,20 +332,6 @@ const ProfileSettings = () => {
             </button>
           </div>
         </div>
-
-        {/* Success/Error Message */}
-        {message && (
-          <div className="mt-6 bg-green-500/20 border-2 border-green-500/50 rounded-2xl p-4 backdrop-blur-sm animate-fade-in">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <p className="text-green-200 font-semibold text-lg">{message}</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -4,6 +4,9 @@ import axios from 'axios';  // Make sure to import axios
 import notsuccess from '/src/assets/notifysuccess.png';  // Replace with your success notification icon path
 import noterror from '/src/assets/notifyerror.png';  // Replace with your error notification icon path
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
+
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const FavoritesPage = () => {
   const [favorites, setFavorites] = useState([]);
@@ -26,7 +29,7 @@ const FavoritesPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!selectedDoctor || !selectedDate) return;
+    if (!selectedDoctor) return;
     const fetchSlots = async () => {
       const res = await axios.get(`/api/doctors/${selectedDoctor._id}/slots`, {
         params: { date: selectedDate }
@@ -61,13 +64,13 @@ const FavoritesPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedSlot) {
-      alert("Please select a slot.");
+      showErrorToast("Please select a slot.");
       return;
     }
     const appointmentTime = `${selectedDate}T${selectedSlot}:00`;
 
     if (!isValidDate(appointmentTime)) {
-      alert('Please select a valid appointment time.');
+      showErrorToast('Please select a valid appointment time.');
       return;
     }
 
@@ -86,56 +89,33 @@ const FavoritesPage = () => {
           ContentType: 'application/json',
         }
       );
-
-      // Show success notification if permission granted [DISABLED]
-      // if (Notification.permission === 'granted') {
-      //   new Notification('Appointment booked!', {
-      //     body: `Your appointment with Dr. ${selectedDoctor.name} is confirmed.`,
-      //     icon: notsuccess,
-      //   });
-      // } else {
-      //   alert('Appointment booked!');
-      // }
-      alert('Appointment booked!');
+      
+      showSuccessToast(
+          'Appointment Requested!',
+          <span className="text-white">
+            Your appointment with <span className="text-green-400 font-medium">Dr. {selectedDoctor.name}</span> is confirmed.
+          </span>
+      );
 
       setSelectedDoctor(null);
       setForm({ patientName: '', patientContact: '', appointmentTime: '', reason: '' });
-      navigate('/patient/favorites'); // Redirect to appointments page after booking
+      navigate('/patient/appointments/upcoming'); // Redirect to appointments page after booking
     } catch (err) {
       console.error('Booking failed:', err);
-
-      // Show error notification if permission granted [DISABLED]
-      // if (Notification.permission === 'granted') {
-      //   new Notification('Booking failed', {
-      //     body: 'There was an error booking your appointment. Please try again.',
-      //     icon: noterror,
-      //   });
-      // } else {
-      //   alert('Booking failed. Please try again.');
-      // }
-      alert('Booking failed. Please try again.');
+      showErrorToast("Booking failed. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 py-16 px-6 md:px-12 font-sans relative overflow-hidden">
+    <div className="w-full py-4 px-6 md:px-12 font-sans relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
-        <div className="absolute w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
+        <div className="absolute w-96 h-96 bg-pink-500/20 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-64 h-64 bg-rose-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className="text-center mb-14 relative z-10">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-pink-500 to-red-500 rounded-full mb-4 shadow-2xl">
-          <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-        </div>
-        <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pink-400 via-red-400 to-rose-400 bg-clip-text text-transparent mt-4 select-none drop-shadow-lg">
-          Your Favorite Doctors
-        </h1>
-        <p className="text-blue-200 text-lg mt-2">Quick access to your most trusted healthcare providers</p>
       </div>
 
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
@@ -148,59 +128,51 @@ const FavoritesPage = () => {
                 </svg>
               </div>
               <p className="text-2xl font-semibold text-white mb-2">No Favorites Yet</p>
-              <p className="text-blue-200">Start adding doctors to your favorites for quick access</p>
+              <p className="text-purple-200">Start adding doctors to your favorites for quick access</p>
             </div>
           </div>
         ) : (
           favorites.map((doc) => (
             <div
               key={doc._id}
-              className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl border border-white/20 hover:border-pink-400/50 transform hover:-translate-y-2 transition-all duration-300 overflow-hidden"
+              className="group relative rounded-2xl p-[1px] bg-gradient-to-br from-white/10 via-white/5 to-transparent hover:from-purple-500 hover:via-pink-500 hover:to-rose-500 transition-all duration-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] hover:-translate-y-1 overflow-hidden"
             >
+              <div className="relative bg-[#0a0a0a] rounded-2xl h-full w-full overflow-hidden">
               <div className="relative overflow-hidden">
                 <img
-                  src={doc.imageUrl || '/default-doctor.jpg'}
+                  src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : '/default-doctor.jpg'}
                   alt={doc.name}
                   className="h-56 w-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                {/* Favorite Heart Button Overlay */}
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveFromFavorites(doc._id);
-                  }}
-                  className="absolute top-3 right-3 bg-white/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-all"
-                >
-                  <FaHeart className="text-red-500 drop-shadow-lg animate-pulse" size={20} />
-                </div>
               </div>
               <div className="p-5 text-white">
-                <h2 className="text-xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent drop-shadow-md select-none mb-1">
+                <h2 className="text-xl font-bold bg-gradient-to-r from-pink-300 to-rose-300 bg-clip-text text-transparent drop-shadow-md select-none mb-1">
                   Dr. {doc.name}
                 </h2>
-                <p className="text-sm text-blue-200 italic mb-3 select-none flex items-center gap-1">
+                <p className="text-sm text-purple-200 italic mb-3 select-none flex items-center gap-1">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   {doc.specialty}
                 </p>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="flex-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-lg px-3 py-2 border border-blue-400/30">
-                    <p className="text-xs text-blue-200 mb-1">Consultation Fee</p>
+                  <div className="flex-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg px-3 py-2 border border-pink-400/30">
+                    <p className="text-xs text-purple-200 mb-1">Consultation Fee</p>
                     <p className="font-bold text-white select-none">₹{doc.consultationFees}</p>
                   </div>
                 </div>
                 {/* View Details Button */}
                 <button
                   onClick={() => handleBookAppointment(doc)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   Book Appointment
                 </button>
+              </div>
               </div>
             </div>
           ))

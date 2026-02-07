@@ -27,7 +27,6 @@ const PatientNotifications = () => {
 
   const navigate = useNavigate();
 
-  // Always re-sync from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem('patientNotifications');
@@ -82,6 +81,30 @@ const PatientNotifications = () => {
       setSocketError(error.message);
     });
 
+    // Listen for new doctor listings
+    socket.on('newDoctorListing', (data) => {
+      console.log("Received newDoctorListing event:", data);
+      
+      const newNotification = {
+        id: Date.now(),
+        type: 'new_doctor',
+        message: data.message,
+        doctorName: data.doctorName,
+        specialty: data.specialty,
+        time: new Date().toLocaleTimeString(),
+        read: false
+      };
+
+      setNotifications(prev => [newNotification, ...prev]);
+
+      // if (Notification.permission === "granted") {
+      //   new Notification("New Doctor Available", {
+      //     body: data.message,
+      //     icon: "/icons/doctor-icon.png" 
+      //   });
+      // }
+    });
+
     // Listen for appointment status updates
     socket.on('appointmentStatus', (data) => {
       console.log("Received appointmentStatus event:", data);
@@ -123,7 +146,8 @@ const PatientNotifications = () => {
         return [newNotification, ...prev];
       });
 
-      // Show browser notification if permission granted
+      // Show browser notification if permission granted [DISABLED]
+      /*
       if (Notification.permission === "granted") {
         try {
           new Notification("Appointment Update", {
@@ -136,6 +160,7 @@ const PatientNotifications = () => {
           console.error('Error showing browser notification:', notificationError);
         }
       }
+      */
     });
 
     // Handle socket errors
@@ -173,28 +198,21 @@ const PatientNotifications = () => {
       case 'Rejected':
         return 'text-red-600';
       default:
-        return 'text-blue-600';
+        return 'text-purple-600';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 py-8 px-4">
+    <div className="w-full py-8 px-4">
       {/* Background Effects */}
       <div className="absolute inset-0">
-        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-10 left-10 animate-pulse"></div>
-        <div className="absolute w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl bottom-10 right-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-10 left-10 animate-pulse"></div>
+        <div className="absolute w-96 h-96 bg-pink-500/20 rounded-full blur-3xl bottom-10 right-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
       <div className="max-w-5xl mx-auto relative z-10">
         {/* Header */}
         <div className="mb-10 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-4 shadow-xl">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </div>
-          <h1 className="text-5xl font-black text-white mb-3">Notifications</h1>
-          <p className="text-blue-200 text-lg">Stay updated with your health journey</p>
         </div>
         
         {/* Notifications Container */}
@@ -202,25 +220,25 @@ const PatientNotifications = () => {
           {notifications.length === 0 ? (
             <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-16 text-center">
               <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 rounded-full mb-6">
-                <svg className="w-12 h-12 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-12 h-12 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
               </div>
               <p className="text-2xl font-semibold text-white mb-2">All caught up!</p>
-              <p className="text-blue-200">You have no new notifications</p>
+              <p className="text-purple-200">You have no new notifications</p>
             </div>
           ) : (
             notifications.map((notification) => (
               <div
                 key={notification.id}
                 className={`group relative bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl border transition-all duration-300 hover:bg-white/20 hover:shadow-2xl hover:scale-[1.02] cursor-pointer overflow-hidden ${
-                  !notification.read ? 'border-blue-400/50 bg-gradient-to-r from-blue-500/10 to-indigo-500/10' : 'border-white/20'
+                  !notification.read ? 'border-pink-400/50 bg-gradient-to-r from-pink-500/10 to-purple-500/10' : 'border-white/20'
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
                 {/* Unread Indicator */}
                 {!notification.read && (
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-rose-500"></div>
                 )}
                 
                 <div className="p-6 flex items-start gap-4">
@@ -228,12 +246,16 @@ const PatientNotifications = () => {
                   <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
                     notification.status === 'Confirmed' ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
                     notification.status === 'Cancelled' || notification.status === 'Rejected' ? 'bg-gradient-to-r from-red-400 to-rose-500' :
-                    notification.type === 'payment' ? 'bg-gradient-to-r from-blue-400 to-indigo-500' :
-                    'bg-gradient-to-r from-blue-400 to-indigo-500'
+                    notification.type === 'payment' ? 'bg-gradient-to-r from-purple-400 to-pink-500' :
+                    'bg-gradient-to-r from-purple-400 to-pink-500'
                   }`}>
                     {notification.type === 'payment' ? (
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    ) : notification.type === 'new_doctor' ? (
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                     ) : notification.status === 'Confirmed' ? (
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,247 +1,296 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { connect, createLocalVideoTrack } from 'twilio-video';
-import axios from 'axios';
+import React, { useEffect, useRef, useState } from 'react';
+import { io } from 'socket.io-client';
+
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const VideoCall = ({ appointmentId, onEnd }) => {
-  const [room, setRoom] = useState(null);
-  const [localVideoTrack, setLocalVideoTrack] = useState(null);
-  const [remoteParticipants, setRemoteParticipants] = useState(new Map());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [connected, setConnected] = useState(false);
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [status, setStatus] = useState('Initializing...');
 
-  const localVideoRef = useRef();
-  const remoteVideoRef = useRef();
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const socketRef = useRef(null);
+
+  // STUN servers (free via Google)
+  const peerConfiguration = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+    ],
+  };
 
   useEffect(() => {
-    joinRoom();
-    
-    return () => {
-      if (room) {
-        room.disconnect();
+    // Initialize Socket
+    socketRef.current = io(BACKEND_URL);
+
+    // Setup Listeners BEFORE emitting join
+    socketRef.current.on('connect', () => {
+      console.log("Socket connected");
+    });
+
+    socketRef.current.on('room-joined', () => {
+       if (status === 'Joining room...') {
+          setStatus('Waiting for participant...');
+       }
+    });
+
+    socketRef.current.on('user-connected', async (userId) => {
+      setStatus('User connected. Initiating call...');
+      await createOffer(userId);
+    });
+
+    socketRef.current.on('offer', async ({ offer, senderId }) => {
+       setStatus('Incoming call...');
+       await handleOffer(offer, senderId);
+    });
+
+    socketRef.current.on('answer', async ({ answer }) => {
+       setStatus('Call Connected');
+       await handleAnswer(answer);
+    });
+
+    socketRef.current.on('ice-candidate', async ({ candidate }) => {
+      if (peerConnectionRef.current) {
+        try {
+          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error('Error adding received ice candidate', e);
+        }
       }
-      if (localVideoTrack) {
-        localVideoTrack.stop();
+    });
+
+    const startCall = async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+           setStatus('Error: WebRTC not supported here (Non-HTTPS?)');
+           return;
+        }
+
+        setStatus('Accessing camera/microphone...');
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setLocalStream(stream);
+        
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+
+        setStatus('Joining room...');
+        socketRef.current.emit('join-video-room', appointmentId);
+
+      } catch (err) {
+        console.error("Error accessing media devices:", err);
+        let msg = 'Error accessing camera.';
+        if (err.name === 'NotAllowedError') msg = 'Error: Permission denied.';
+        if (err.name === 'NotFoundError') msg = 'Error: No camera found.';
+        if (err.name === 'NotReadableError') msg = 'Error: Camera busy/in use.';
+        if (err.name === 'SecurityError') msg = 'Error: HTTPS required.';
+        setStatus(msg);
+      }
+    };
+
+    startCall();
+
+    return () => {
+      if (streamRef.current) { // Use ref to clean up correct stream
+         streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+      }
+      if (socketRef.current) {
+        socketRef.current.disconnect();
       }
     };
   }, [appointmentId]);
 
-  const joinRoom = async () => {
-    try {
-      setLoading(true);
-      setError('');
+  // Keep track of stream in ref for cleanup closure
+  const streamRef = useRef(null);
+  useEffect(() => {
+     streamRef.current = localStream;
+  }, [localStream]);
 
-      // Get room details
-      const token = localStorage.getItem('token');
-      const appointmentResponse = await axios.get(
-        `http://localhost:5000/api/video-call/appointment/${appointmentId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
 
-      const { roomName, userName } = appointmentResponse.data;
+  const createPeerConnection = () => {
+    const pc = new RTCPeerConnection(peerConfiguration);
 
-      // Get Twilio token
-      const tokenResponse = await axios.post(
-        'http://localhost:5000/api/video-call/get-twilio-token',
-        { roomName, userName },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const twilioToken = tokenResponse.data.token;
-
-      // Create local video track
-      const videoTrack = await createLocalVideoTrack({
-        width: 640,
-        height: 480,
+    // Add local tracks
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        pc.addTrack(track, localStream);
       });
-      setLocalVideoTrack(videoTrack);
-
-      // Attach local video to DOM
-      if (localVideoRef.current) {
-        videoTrack.attach(localVideoRef.current);
-      }
-
-      // Connect to room
-      const connectedRoom = await connect(twilioToken, {
-        name: roomName,
-        tracks: [videoTrack],
-        video: true,
-        audio: true,
-      });
-
-      setRoom(connectedRoom);
-      setConnected(true);
-      setLoading(false);
-
-      // Handle existing participants
-      connectedRoom.participants.forEach(participantConnected);
-
-      // Handle new participants
-      connectedRoom.on('participantConnected', participantConnected);
-      connectedRoom.on('participantDisconnected', participantDisconnected);
-
-    } catch (err) {
-      console.error('Error joining room:', err);
-      setError('Failed to join video call: ' + err.message);
-      setLoading(false);
     }
-  };
 
-  const participantConnected = (participant) => {
-    console.log('Participant connected:', participant.identity);
+    // Handle remote tracks
+    pc.ontrack = (event) => {
+      setRemoteStream(event.streams[0]);
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    // Handle ICE candidates
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        socketRef.current.emit('ice-candidate', {
+          candidate: event.candidate,
+          roomId: appointmentId
+        });
+      }
+    };
     
-    setRemoteParticipants(prev => new Map(prev.set(participant.sid, participant)));
+    // Connection state changes
+    pc.onconnectionstatechange = () => {
+        if(pc.connectionState === 'connected') {
+            setStatus('Connected');
+        } else if (pc.connectionState === 'disconnected') {
+            setStatus('User Disconnected');
+        }
+    };
 
-    participant.tracks.forEach(publication => {
-      if (publication.isSubscribed) {
-        trackSubscribed(publication.track);
-      }
+    peerConnectionRef.current = pc;
+    return pc;
+  };
+
+  const createOffer = async (userId) => {
+    const pc = createPeerConnection(); // Create new PC for new connection
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    
+    socketRef.current.emit('offer', {
+      offer,
+      roomId: appointmentId
     });
-
-    participant.on('trackSubscribed', trackSubscribed);
-    participant.on('trackUnsubscribed', trackUnsubscribed);
   };
 
-  const participantDisconnected = (participant) => {
-    console.log('Participant disconnected:', participant.identity);
-    setRemoteParticipants(prev => {
-      const newMap = new Map(prev);
-      newMap.delete(participant.sid);
-      return newMap;
+  const handleOffer = async (offer, senderId) => {
+    const pc = createPeerConnection();
+    await pc.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+
+    socketRef.current.emit('answer', {
+      answer,
+      roomId: appointmentId
     });
   };
 
-  const trackSubscribed = (track) => {
-    if (track.kind === 'video' && remoteVideoRef.current) {
-      track.attach(remoteVideoRef.current);
+  const handleAnswer = async (answer) => {
+     if(peerConnectionRef.current) {
+        await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+     }
+  };
+
+  const toggleMute = () => {
+    if (localStream) {
+       localStream.getAudioTracks().forEach(track => track.enabled = !track.enabled);
+       setIsMuted(!isMuted);
     }
   };
 
-  const trackUnsubscribed = (track) => {
-    track.detach();
-  };
-
-  const endCall = () => {
-    if (room) {
-      room.disconnect();
-      setRoom(null);
+  const toggleVideo = () => {
+    if (localStream) {
+       localStream.getVideoTracks().forEach(track => track.enabled = !track.enabled);
+       setIsVideoOff(!isVideoOff);
     }
-    if (localVideoTrack) {
-      localVideoTrack.stop();
-      setLocalVideoTrack(null);
-    }
-    setConnected(false);
-    if (onEnd) onEnd();
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white text-lg">Joining video call...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-white text-xl mb-4">Unable to join video call</h2>
-          <p className="text-gray-400 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      {/* Header */}
-      <div className="bg-gray-800 text-white p-4 flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Video Consultation</h1>
-        <div className="flex items-center gap-4">
-          <span className={`flex items-center gap-2 ${connected ? 'text-green-400' : 'text-red-400'}`}>
-            <div className={`w-3 h-3 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`}></div>
-            {connected ? 'Connected' : 'Disconnected'}
-          </span>
-          <button
-            onClick={endCall}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-          >
-            <span>📞</span>
-            End Call
-          </button>
-        </div>
-      </div>
-
-      {/* Video Container */}
-      <div className="flex-1 relative">
-        {/* Remote Video (Main) */}
-        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-          {remoteParticipants.size > 0 ? (
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              playsInline
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="text-center text-gray-400">
-              <div className="text-6xl mb-4">👨‍⚕️</div>
-              <p className="text-xl">Waiting for other participant...</p>
-            </div>
-          )}
-        </div>
-
-        {/* Local Video (Picture-in-Picture) */}
-        <div className="absolute top-4 right-4 w-64 h-48 bg-gray-700 rounded-lg overflow-hidden shadow-lg border-2 border-gray-600">
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-sm px-2 py-1 rounded">
-            You
+    <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col">
+       {/* Header */}
+       <div className="px-6 py-4 bg-slate-800 flex justify-between items-center shadow-lg z-10">
+          <div>
+            <h2 className="text-xl font-bold text-white">Video Consultation</h2>
+            <p className={`text-sm ${status.startsWith('Error') ? 'text-red-400 font-bold' : 'text-slate-400'}`}>Status: {status}</p>
           </div>
-        </div>
-      </div>
+          <div className="flex gap-3">
+             {status.startsWith('Error') && (
+                <button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white font-bold transition-colors">
+                  Retry
+                </button>
+             )}
+             <button onClick={onEnd} className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-white font-bold transition-colors">
+               End Call
+             </button>
+          </div>
+       </div>
 
-      {/* Controls */}
-      <div className="bg-gray-800 p-4 flex justify-center gap-4">
-        <button
-          onClick={() => {
-            if (localVideoTrack) {
-              if (localVideoTrack.isEnabled) {
-                localVideoTrack.disable();
-              } else {
-                localVideoTrack.enable();
-              }
-            }
-          }}
-          className="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full"
-        >
-          📹
-        </button>
-        <button
-          onClick={() => {
-            // Toggle audio (you'd need to track audio track similarly)
-          }}
-          className="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full"
-        >
-          🎤
-        </button>
-      </div>
+       {/* Video Grid */}
+       <div className="flex-1 p-4 flex gap-4 overflow-hidden relative">
+          
+          {/* Main Remote Video */}
+          <div className="flex-1 bg-black rounded-2xl overflow-hidden relative flex items-center justify-center border border-slate-700">
+             <video 
+               ref={remoteVideoRef} 
+               autoPlay 
+               playsInline 
+               className="w-full h-full object-cover" 
+             />
+             {!remoteStream && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                   <div className="text-center">
+                      <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                         <span className="text-4xl">👤</span>
+                      </div>
+                      <p className="text-slate-400">Waiting for other participant...</p>
+                   </div>
+                </div>
+             )}
+          </div>
+
+          {/* Local Video (PiP) */}
+          <div className="absolute bottom-8 right-8 w-48 h-36 bg-slate-800 rounded-xl overflow-hidden border-2 border-slate-600 shadow-2xl z-20">
+             <video 
+               ref={localVideoRef} 
+               autoPlay 
+               playsInline 
+               muted 
+               className={`w-full h-full object-cover ${isVideoOff ? 'hidden' : ''} mirror`} 
+             />
+             {isVideoOff && (
+               <div className="absolute inset-0 flex items-center justify-center bg-slate-700">
+                  <span className="text-2xl">📷</span>
+               </div>
+             )}
+              <div className="absolute bottom-2 left-2 px-2 py-0 type-xs bg-black/50 rounded text-[10px] text-white">
+                You {isMuted && '(Muted)'}
+              </div>
+          </div>
+       </div>
+
+       {/* Controls */}
+       <div className="h-20 bg-slate-800 flex items-center justify-center gap-6">
+          <button 
+             onClick={toggleMute} 
+             className={`w-12 h-12 rounded-full flex items-center justify-center text-xl transition-all ${isMuted ? 'bg-red-500 hover:bg-red-600' : 'bg-slate-700 hover:bg-slate-600'} text-white`}
+             title={isMuted ? "Unmute" : "Mute"}
+          >
+             {isMuted ? '🔇' : '🎤'}
+          </button>
+          
+           <button 
+             onClick={toggleVideo} 
+             className={`w-12 h-12 rounded-full flex items-center justify-center text-xl transition-all ${isVideoOff ? 'bg-red-500 hover:bg-red-600' : 'bg-slate-700 hover:bg-slate-600'} text-white`}
+             title={isVideoOff ? "Turn Video On" : "Turn Video Off"}
+          >
+             {isVideoOff ? '🚫' : '📹'}
+          </button>
+
+           <button 
+             onClick={onEnd} 
+             className="w-14 h-14 rounded-full flex items-center justify-center text-2xl bg-red-600 hover:bg-red-700 text-white transition-all shadow-lg shadow-red-500/30"
+          >
+             📞
+          </button>
+       </div>
+       <style>{`
+         .mirror {
+            transform: scaleX(-1);
+         }
+       `}</style>
     </div>
   );
 };

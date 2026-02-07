@@ -1,67 +1,121 @@
-import React from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import AppLogo from "../assets/logo.svg";
+import { Toaster } from 'react-hot-toast';
 
 const LandingPage = () => {
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
+    const handleNavigation = (path) => navigate(path);
 
-    const handleNavigation = (path) => {
-        console.log(`Navigating to: ${path}`); // Debug log
-        navigate(path); // Use navigate for routing
-    };
+    // Testimonial slider state
+    const testimonials = [
+        {
+            text: "The instant health insights have been incredibly helpful. I can understand my reports better now!",
+            author: "Sarah Johnson",
+            photo: "https://randomuser.me/api/portraits/women/44.jpg"
+        },
+        {
+            text: "Connecting with specialist doctors has never been easier. Great platform!",
+            author: "Dr. Michael Chen",
+            photo: "https://randomuser.me/api/portraits/men/32.jpg"
+        },
+        {
+            text: "The AI-powered analysis helps me make informed decisions about my health.",
+            author: "Robert Smith",
+            photo: "https://randomuser.me/api/portraits/men/65.jpg"
+        },
+        {
+            text: "I love the seamless experience and beautiful design. Highly recommended!",
+            author: "Priya Patel",
+            photo: "https://randomuser.me/api/portraits/women/68.jpg"
+        },
+        {
+            text: "The reminders and scheduling features make my life so much easier.",
+            author: "Alex Lee",
+            photo: "https://randomuser.me/api/portraits/men/41.jpg"
+        }
+    ];
+    const [currentTestimonial, setCurrentTestimonial] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+        }, 3500);
+        return () => clearInterval(interval);
+    }, [testimonials.length]);
 
     return (
-        <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-blue-900 via-black to-blue-900 animate-fadeIn">
-            {/* Animated background elements */}
+        <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] animate-fadeIn">
+            <Toaster position="top-right" />
+            {/* Animated SVG background */}
             <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute w-96 h-96 bg-blue-800 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
-                <div className="absolute w-96 h-96 bg-blue-900 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
-                <div className="absolute w-96 h-96 bg-blue-950 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000"></div>
-                <div className="absolute w-96 h-96 bg-indigo-950 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-6000"></div>
+                <svg width="100vw" height="100vh" className="absolute w-full h-full" viewBox="0 0 1920 1080" fill="none">
+                    <defs>
+                        <radialGradient id="mainGradient" cx="50%" cy="50%" r="80%" fx="50%" fy="50%">
+                            <stop offset="0%" stopColor="#E0AAFF" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="#240046" stopOpacity="0.1" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="960" cy="540" rx="900" ry="400" fill="url(#mainGradient)" />
+                </svg>
+                <div className="absolute w-[600px] h-[600px] bg-[#7B2CBF]/30 rounded-full blur-[120px] top-[-100px] left-[-100px] animate-blob"></div>
+                <div className="absolute w-[500px] h-[500px] bg-[#E0AAFF]/20 rounded-full blur-[100px] bottom-[-100px] right-[-100px] animate-blob animation-delay-2000"></div>
             </div>
 
-            {/* Navigation Buttons at the Top Right */}
-           
+            {/* Logo & Brand */}
+            <div className="absolute top-8 left-8 flex items-center gap-2 z-20 animate-fade-in-down">
+                <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl p-2 shadow-lg border border-white/10 transition-transform hover:scale-110 duration-300">
+                    <img src={AppLogo} alt="HealthCard Logo" className="w-full h-full object-contain drop-shadow-lg" />
+                </div>
+                <span className="text-3xl font-extrabold bg-gradient-to-r from-[#E0AAFF] to-white bg-clip-text text-transparent drop-shadow-md tracking-wide">
+                    HealthCard
+                </span>
+            </div>
 
             {/* Hero Section */}
-            <div className="text-center text-white px-6 pt-32 pb-20 relative z-10 space-y-12">
-                <div className="space-y-6">
-                    <h1 className="text-2xl md:text-4xl font-bold drop-shadow-lg overflow-hidden whitespace-nowrap border-r-4 border-white pr-2 animate-typing bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-white">
-                        Health Monitoring & Consultations – Your Well-being, Our Commitment!
+            <div className="text-center text-white px-6 pt-36 pb-20 relative z-10 space-y-12">
+                <div className="space-y-8">
+                    <h1 className="text-5xl md:text-7xl font-extrabold drop-shadow-xl text-pink-400 animate-fade-in">
+                        Your Health, Our Mission
                     </h1>
-                    <p className="text-lg font-semibold md:text-xl max-w-2xl mx-auto drop-shadow-sm text-blue-100 animate-fade-in">
-                        Get health insights and connect with expert doctors for professional consultations.
+                    <p className="text-2xl md:text-3xl max-w-3xl mx-auto drop-shadow-md text-[#E0AAFF] animate-fade-in">
+                        AI-powered health monitoring, instant report analysis, and expert consultations—all in one place.
                     </p>
                 </div>
-    <div className="absolute top-8 right-8 flex gap-4 z-10">
-                <button 
-                    className="px-6 py-2.5 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white font-semibold rounded-lg shadow-lg hover:from-orange-500 hover:via-orange-600 hover:to-orange-700 transition duration-500 transform hover:scale-105 hover:shadow-orange-500/30 animate-pulse"
-                    onClick={() => handleNavigation("/login")}
-                >
-                    Login
-                </button>
-                <button 
-                    className="px-6 py-2.5  bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white font-semibold rounded-lg shadow-lg hover:from-orange-500 hover:via-orange-600 hover:to-orange-700 transition duration-500 transform hover:scale-105 hover:shadow-orange-500/30 animate-pulse"
-                    onClick={() => handleNavigation("/signup")}
-                >
-                    Sign Up
-                </button>
-            </div>
+                <div className="absolute top-8 right-8 flex gap-4 z-10">
+                    <button 
+                        className="px-8 py-3 bg-pink-400 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:shadow-pink-400/30 transition duration-500 transform hover:scale-105 animate-pulse"
+                        style={{ marginTop: '-2rem' }}
+                        onClick={() => handleNavigation("/login")}
+                    >
+                        Login
+                    </button>
+                    <button 
+                        className="px-8 py-3 bg-pink-400 hover:bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:shadow-pink-400/30 transition duration-500 transform hover:scale-105 animate-pulse"
+                        style={{ marginTop: '-2rem' }}
+                        onClick={() => handleNavigation("/signup")}
+                    >
+                        Sign Up
+                    </button>
+                </div>
                 {/* Feature Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                    <div className="bg-blue-950/70 backdrop-blur-sm p-8 rounded-xl transform hover:scale-105 transition duration-500 hover:shadow-lg hover:shadow-blue-500/20 border border-blue-800/30 animate-slide-up">
-                        <div className="text-5xl mb-6 animate-bounce">📋</div>
-                        <h3 className="text-2xl font-semibold mb-4">Analyze reports </h3>
-                        <p className="text-blue-100">Get Instant Clarity on Your Health!</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-12">
+                    {/* Card 1 */}
+                    <div className="bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-10 rounded-2xl shadow-xl flex flex-col items-center justify-between min-h-[260px] h-full max-h-[320px] w-full transform hover:scale-105 transition duration-500 hover:shadow-lg hover:shadow-[#E0AAFF]/20 border border-[#7B2CBF]/30 animate-slide-up">
+                        <div className="text-5xl mb-6">📋</div>
+                        <h3 className="text-2xl font-semibold mb-4 text-white">Analyze reports</h3>
+                        <p className="text-blue-100 text-center">Get Instant Clarity on Your Health!</p>
                     </div>
-                    <div className="bg-blue-950/70 backdrop-blur-sm p-8 rounded-xl transform hover:scale-105 transition duration-500 hover:shadow-lg hover:shadow-blue-500/20 border border-blue-800/30 animate-slide-up animation-delay-200">
-                        <div className="text-5xl mb-6 animate-bounce animation-delay-200">👨‍⚕️</div>
-                        <h3 className="text-2xl font-semibold mb-4">Expert Doctors</h3>
-                        <p className="text-blue-100">Connect with experienced healthcare professionals</p>
+                    {/* Card 2 */}
+                    <div className="bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-10 rounded-2xl shadow-xl flex flex-col items-center justify-between min-h-[260px] h-full max-h-[320px] w-full transform hover:scale-105 transition duration-500 hover:shadow-lg hover:shadow-[#E0AAFF]/20 border border-[#7B2CBF]/30 animate-slide-up animation-delay-200">
+                        <div className="text-5xl mb-6">👨‍⚕️</div>
+                        <h3 className="text-2xl font-semibold mb-4 text-white">Expert Doctors</h3>
+                        <p className="text-blue-100 text-center">Connect with experienced healthcare professionals</p>
                     </div>
-                    <div className="bg-blue-950/70 backdrop-blur-sm p-8 rounded-xl transform hover:scale-105 transition duration-500 hover:shadow-lg hover:shadow-blue-500/20 border border-blue-800/30 animate-slide-up animation-delay-400">
-                        <div className="text-5xl mb-6 animate-bounce animation-delay-400">💡</div>
-                        <h3 className="text-2xl font-semibold mb-4">Health Insights</h3>
-                        <p className="text-blue-100">Instant Query Support!</p>
+                    {/* Card 3 */}
+                    <div className="bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-10 rounded-2xl shadow-xl flex flex-col items-center justify-between min-h-[260px] h-full max-h-[320px] w-full transform hover:scale-105 transition duration-500 hover:shadow-lg hover:shadow-[#E0AAFF]/20 border border-[#7B2CBF]/30 animate-slide-up animation-delay-400">
+                        <div className="text-5xl mb-6">💡</div>
+                        <h3 className="text-2xl font-semibold mb-4 text-white">Health Insights</h3>
+                        <p className="text-blue-100 text-center">Instant Query Support!</p>
                     </div>
                 </div>
             </div>
@@ -69,29 +123,55 @@ const LandingPage = () => {
             {/* How It Works Section */}
             <div className="text-white px-6 py-20 relative z-10 bg-blue-950/30">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r text-white">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-[#E0AAFF] to-[#7B2CBF]">
                         How It Works
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <div className="text-center">
-                            <div className="text-4xl mb-4">1️⃣</div>
-                            <h3 className="text-xl font-semibold mb-2">Sign Up</h3>
-                            <p className="text-blue-100">Create your account in minutes</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl mb-4">2️⃣</div>
-                            <h3 className="text-xl font-semibold mb-2">Upload Reports</h3>
-                            <p className="text-blue-100">Share your medical reports securely</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl mb-4">3️⃣</div>
-                            <h3 className="text-xl font-semibold mb-2">Get Analysis</h3>
-                            <p className="text-blue-100">Receive detailed health insights</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl mb-4">4️⃣</div>
-                            <h3 className="text-xl font-semibold mb-2">Consult Doctors</h3>
-                            <p className="text-blue-100">Connect with specialists</p>
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-0">
+                        {/* Step Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 w-full">
+                            {/* Step 1 */}
+                            <div className="bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-8 rounded-2xl shadow-xl flex flex-col items-center">
+                                <div className="mb-4">
+                                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Sign Up</h3>
+                                <p className="text-blue-100 text-center">Create your account in minutes</p>
+                            </div>
+                            {/* Step 2 */}
+                            <div className="bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-8 rounded-2xl shadow-xl flex flex-col items-center">
+                                <div className="mb-4">
+                                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 20v-6m8 6V4a2 2 0 00-2-2H6a2 2 0 00-2 2v16" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Upload Reports</h3>
+                                <p className="text-blue-100 text-center">Share your medical reports securely</p>
+                            </div>
+                            {/* Step 3 */}
+                            <div className="bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-8 rounded-2xl shadow-xl flex flex-col items-center">
+                                <div className="mb-4">
+                                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Get Analysis</h3>
+                                <p className="text-blue-100 text-center">Receive detailed health insights</p>
+                            </div>
+                            {/* Step 4 */}
+                            <div className="bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-8 rounded-2xl shadow-xl flex flex-col items-center">
+                                <div className="mb-4">
+                                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7a4 4 0 018 0v4a4 4 0 01-8 0V7z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 17v2m0 0h-2m2 0h2" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Consult Doctors</h3>
+                                <p className="text-blue-100 text-center">Connect with specialists</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,24 +182,59 @@ const LandingPage = () => {
                 <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-white">
                     What Our Users Say
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                    <div className="bg-blue-950/50 p-8 rounded-xl">
-                        <p className="text-blue-100 mb-6">"The instant health insights have been incredibly helpful. I can understand my reports better now!"</p>
-                        <div className="font-semibold">- Sarah Johnson</div>
-                    </div>
-                    <div className="bg-blue-950/50 p-8 rounded-xl">
-                        <p className="text-blue-100 mb-6">"Connecting with specialist doctors has never been easier. Great platform!"</p>
-                        <div className="font-semibold">- Dr. Michael Chen</div>
-                    </div>
-                    <div className="bg-blue-950/50 p-8 rounded-xl">
-                        <p className="text-blue-100 mb-6">"The AI-powered analysis helps me make informed decisions about my health."</p>
-                        <div className="font-semibold">- Robert Smith</div>
+                <div className="flex justify-center items-center">
+                    <div className="relative w-full max-w-xl mx-auto">
+                        <div className="overflow-hidden">
+                            <div className="transition-all duration-700 ease-in-out">
+                                <div className="bg-[#240046]/80 p-10 rounded-2xl shadow-lg flex flex-col items-center animate-fade-in">
+                                    <div className="flex items-center justify-center mb-6">
+                                        <button
+                                            className="mr-4 bg-[#7B2CBF] hover:bg-[#E0AAFF] text-white rounded-full w-10 h-10 flex items-center justify-center shadow-md transition"
+                                            onClick={() => setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                                            aria-label="Previous testimonial"
+                                        >
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+                                        <img
+                                            src={testimonials[currentTestimonial].photo}
+                                            alt={testimonials[currentTestimonial].author}
+                                            className="w-16 h-16 rounded-full border-4 border-[#E0AAFF] object-cover shadow-lg"
+                                        />
+                                        <button
+                                            className="ml-4 bg-[#7B2CBF] hover:bg-[#E0AAFF] text-white rounded-full w-10 h-10 flex items-center justify-center shadow-md transition"
+                                            onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
+                                            aria-label="Next testimonial"
+                                        >
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <p className="text-xl md:text-2xl text-[#E0AAFF] mb-8 text-center font-medium min-h-[80px]">
+                                        "{testimonials[currentTestimonial].text}"
+                                    </p>
+                                    <div className="font-semibold text-white text-lg">- {testimonials[currentTestimonial].author}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex justify-center mt-6 gap-2">
+                            {testimonials.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    className={`w-3 h-3 rounded-full border border-[#E0AAFF] transition-all duration-300 ${currentTestimonial === idx ? 'bg-[#E0AAFF]' : 'bg-[#240046]'}`}
+                                    onClick={() => setCurrentTestimonial(idx)}
+                                    aria-label={`Show testimonial ${idx + 1}`}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* CTA Section */}
-            <div className="text-white px-6 py-20 relative z-10 bg-gradient-to-r from-orange-500/20 to-orange-600/20">
+            <div className="text-white px-6 py-20 relative z-10 bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF]">
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-8">
                         Ready to Take Control of Your Health?
@@ -128,7 +243,7 @@ const LandingPage = () => {
                         Join thousands of users who trust our platform for their healthcare needs.
                     </p>
                     <button 
-                        className="px-8 py-4 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white font-semibold rounded-lg shadow-lg hover:from-orange-500 hover:via-orange-600 hover:to-orange-700 transition duration-500 transform hover:scale-105 hover:shadow-orange-500/30"
+                        className="px-8 py-4 bg-pink-400 text-white font-semibold rounded-lg shadow-lg hover:bg-pink-500 transition duration-500 transform hover:scale-105 hover:shadow-pink-400/30"
                         onClick={() => handleNavigation("/signup")}
                     >
                         Get Started Today
@@ -140,7 +255,7 @@ const LandingPage = () => {
             <footer className="text-white relative z-10 border-t border-white/10 bg-blue-950/50 backdrop-blur-sm">
                 {/* Main Footer Content */}
                 <div className="max-w-7xl mx-auto px-6 py-12">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] rounded-2xl p-8">
                         {/* Company Info */}
                         <div className="space-y-4">
                             <h3 className="text-xl font-bold text-orange-400">Health Monitor</h3>
@@ -213,7 +328,7 @@ const LandingPage = () => {
 
                 {/* Bottom Footer */}
                 <div className="border-t border-white/10 bg-blue-950/70">
-                    <div className="max-w-7xl mx-auto px-6 py-6">
+                    <div className="bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] max-w-7xl mx-auto px-6 py-6">
                         <div className="md:flex md:items-center md:justify-between text-sm">
                             <div className="text-blue-100">
                                 © 2024 Health Monitoring & Consultations. All rights reserved.

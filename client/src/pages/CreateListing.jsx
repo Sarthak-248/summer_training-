@@ -1,25 +1,26 @@
 // src/pages/CreateListing.jsx
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 
 const defaultAvatar = "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor";
 
 // All doctor profile fields
 const doctorFields = [
-  { key: "specialty", label: "Specialty", type: "text" },
-  { key: "qualifications", label: "Qualifications", type: "text" },
-  { key: "yearsOfExperience", label: "Years of Experience", type: "number" },
-  { key: "contactNumber", label: "Contact Number", type: "text" },
-  { key: "clinicName", label: "Clinic/Hospital Name", type: "text" },
-  { key: "clinicAddress", label: "Clinic/Hospital Address", type: "text" },
-  { key: "registrationNumber", label: "Registration Number", type: "text" },
-  { key: "gender", label: "Gender", type: "select", options: ["Male", "Female", "Other"] },
+  { key: "specialty", label: "Specialty", type: "text", required: true },
+  { key: "qualifications", label: "Qualifications", type: "text", required: true },
+  { key: "yearsOfExperience", label: "Years of Experience", type: "number", required: true },
+  { key: "contactNumber", label: "Contact Number", type: "text", required: true },
+  { key: "clinicName", label: "Clinic/Hospital Name", type: "text", required: true },
+  { key: "clinicAddress", label: "Clinic/Hospital Address", type: "text", required: true },
+  { key: "registrationNumber", label: "Registration Number", type: "text", required: true },
+  { key: "gender", label: "Gender", type: "select", options: ["Male", "Female", "Other"], required: true },
   { key: "languages", label: "Languages Spoken (comma separated)", type: "text" },
   { key: "linkedIn", label: "LinkedIn/Profile Link", type: "text" },
   { key: "awards", label: "Awards/Recognitions", type: "textarea" },
   { key: "services", label: "Services Offered", type: "textarea" },
-  { key: "description", label: "Description", type: "textarea" },
-  { key: "consultationFees", label: "Consultation Fee (₹)", type: "number" },
+  { key: "description", label: "Description", type: "textarea", required: true },
+  { key: "consultationFees", label: "Consultation Fee (₹)", type: "number", required: true },
 ];
 
 const CreateListing = () => {
@@ -101,14 +102,19 @@ const CreateListing = () => {
       setLoading(false);
       return;
     }
+    
+    // Validate required fields dynamically
+    const missingFields = doctorFields
+      .filter(field => field.required && (!form[field.key] || !form[field.key].toString().trim()))
+      .map(field => field.label);
+
     if (
-      !form.name ||
-      !form.specialty ||
-      !form.description ||
-      !form.consultationFees ||
+      missingFields.length > 0 ||
       (!doctor && !photoFile) // For new profile, image is required
     ) {
-      setError("Please fill all required fields and upload a profile photo.");
+      const errMsg = `Please fill all required fields: ${missingFields.join(", ")}${!doctor && !photoFile ? ", and upload a photo" : ""}.`;
+      setError(errMsg);
+      showErrorToast(errMsg);
       setLoading(false);
       return;
     }
@@ -135,13 +141,13 @@ const CreateListing = () => {
         res = await axios.put("/api/doctors/my-profile", data, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setMsg("Profile updated successfully!");
+        showSuccessToast('Profile Updated', 'Your doctor profile has been updated successfully!');
       } catch (err) {
         // If not found, create new
         res = await axios.post("/api/doctors/create-listing", data, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setMsg("Profile created successfully!");
+        showSuccessToast('Profile Created', 'Your doctor listing is now live!');
       }
       setDoctor(res.data);
       setForm({
@@ -152,7 +158,9 @@ const CreateListing = () => {
       setEditMode(false);
       setPhotoFile(null);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to save profile.");
+      const errMsg = err.response?.data?.message || "Failed to save profile.";
+      setError(errMsg);
+      showErrorToast(errMsg);
     } finally {
       setLoading(false);
     }
@@ -160,7 +168,7 @@ const CreateListing = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-pink-900 to-rose-900 relative overflow-hidden">
+      <div className="w-full min-h-screen flex items-center justify-center relative overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0">
           <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
@@ -174,7 +182,7 @@ const CreateListing = () => {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-rose-900 px-4 py-8 md:py-16 relative overflow-hidden">
+    <div className="w-full px-4 pt-1 pb-8 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
@@ -183,19 +191,8 @@ const CreateListing = () => {
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4 shadow-2xl">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
-          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pink-400 via-purple-400 to-rose-400 bg-clip-text text-transparent drop-shadow-lg">
-            Doctor Profile
-          </h1>
-          <p className="text-purple-200 text-lg mt-2">Manage your professional information</p>
-        </div>
-
+        {/* Header Section Removed as per request */}
+        
         <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6 md:p-10">
           {/* Profile Photo Section */}
           <div className="flex flex-col items-center mb-8">
@@ -293,7 +290,7 @@ const CreateListing = () => {
                         </svg>
                       )}
                       {field.label}
-                      {(field.key === 'specialty' || field.key === 'description' || field.key === 'consultationFees') && ' *'}
+                      {field.required && ' *'}
                     </label>
                     {field.type === "select" ? (
                       <div className="relative">

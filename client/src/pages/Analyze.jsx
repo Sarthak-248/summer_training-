@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { showErrorToast } from '../utils/toastUtils';
 
 export default function Analyze() {
   const [result, setResult] = useState(null);
@@ -45,7 +46,7 @@ export default function Analyze() {
     const formData = new FormData(e.target);
 
     try {
-      const res = await fetch("http://localhost:5000/api/patient/analyze-report", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/patient/analyze-report`, {
         method: "POST",
         body: formData,
       });
@@ -60,7 +61,8 @@ export default function Analyze() {
         throw new Error(data.error);
       }
 
-      setResult(data.severity);
+      // Backend returns "prediction", fallback to "severity" if legacy
+      setResult(data.prediction || data.severity);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -73,14 +75,14 @@ export default function Analyze() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("File too large. Maximum size is 5MB.");
+      showErrorToast("File too large. Maximum size is 5MB.");
       e.target.value = null;
       setFileName("");
       return;
     }
 
     if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type)) {
-      alert("Unsupported file type. Upload PDF or image (JPG, PNG).");
+      showErrorToast("Unsupported file type. Upload PDF or image (JPG, PNG).");
       e.target.value = null;
       setFileName("");
       return;
@@ -90,12 +92,12 @@ export default function Analyze() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="w-full min-h-[calc(100vh-4rem)] pt-8 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Animated Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
-        <div className="absolute w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute w-96 h-96 bg-violet-600/30 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
+        <div className="absolute w-96 h-96 bg-purple-600/30 rounded-full blur-3xl bottom-0 right-0 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-64 h-64 bg-fuchsia-500/20 rounded-full blur-3xl top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <form

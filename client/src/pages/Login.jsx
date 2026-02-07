@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
+import AppLogo from '../assets/logo.svg';
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -15,7 +17,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post("http://localhost:5000/api/auth/login", { email, password,});
+            const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/login`, { email, password,});
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("role", res.data.user.role);
             if (res.data.user.role === "doctor" && res.data.user.doctorId) {
@@ -26,23 +28,27 @@ const Login = () => {
                 localStorage.setItem("patientId", res.data.user._id);
             }
 
+            showSuccessToast('Welcome Back!', 'Successfully logged in to your account.');
+
             if (res.data.user.role === "patient") {
                 navigate("/patient/home");
             } else if (res.data.user.role === "doctor") {
                 navigate("/doctor/home");
             } else {
                 setError("Invalid user role");
+                showErrorToast("Invalid user role");
             }
         } catch (error) {
             console.error("Login Error:", error);
             setError(error.response?.data?.error || "Invalid credentials");
+            showErrorToast(error.response?.data?.error || "Invalid credentials");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 relative overflow-hidden">
+        <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-[#1a0036] via-[#240046] to-[#7B2CBF] p-4 relative overflow-hidden">
             {/* Animated Background Elements */}
             <div className="absolute inset-0">
                 <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-0 left-0 animate-pulse"></div>
@@ -53,13 +59,11 @@ const Login = () => {
             <div className="relative z-10 bg-white/10 backdrop-blur-xl p-10 rounded-3xl shadow-2xl border border-white/20 w-full max-w-md">
                 {/* Header with Icon */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mb-4 shadow-2xl">
-                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                    <div className="inline-flex items-center justify-center w-28 h-28 mb-4 transition-transform hover:scale-105 duration-300">
+                        <img src={AppLogo} alt="HealthCard Logo" className="w-full h-full object-contain drop-shadow-2xl" />
                     </div>
-                    <h2 className="text-4xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-lg">Welcome Back</h2>
-                    <p className="text-blue-200 mt-2">Sign in to your account</p>
+                    <h2 className="text-4xl font-black text-white drop-shadow-lg">Welcome Back</h2>
+                    <p className="text-white mt-2">Sign in to your account</p>
                 </div>
 
                 {error && (
@@ -109,7 +113,7 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="group relative mt-4 font-bold py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
+                        className="group relative mt-4 font-bold py-4 bg-pink-400 hover:bg-pink-500 text-white rounded-xl shadow-2xl hover:shadow-pink-400/50 transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
                     >
                         <span className="relative z-10 flex items-center justify-center gap-2">
                             {loading ? (
@@ -129,7 +133,7 @@ const Login = () => {
                                 </>
                             )}
                         </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        {/* Removed blue hover overlay to keep button pink on hover */}
                     </button>
                 </form>
 

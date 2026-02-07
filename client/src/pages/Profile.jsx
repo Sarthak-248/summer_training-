@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { toast, Toaster } from 'react-hot-toast';
 import Header1 from './header1';
 
 const fields = [
@@ -14,7 +16,7 @@ const fields = [
   { key: "currentMedications", label: "Current Medications", type: "textarea" },
 ];
 
-const defaultAvatar = "https://api.dicebear.com/7.x/adventurer/svg?seed=patient";
+const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -24,9 +26,8 @@ const Profile = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState("");
   const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState("");
-  const [error, setError] = useState("");
   const fileInputRef = useRef();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,8 +36,10 @@ const Profile = () => {
         const userRes = await axios.get("/api/auth/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         setUser(userRes.data);
 
+        // Fetch patient data distinctively
         if (userRes.data.role === "patient") {
           const patientRes = await axios.get("/api/patient/profile", {
             headers: { Authorization: `Bearer ${token}` },
@@ -44,15 +47,23 @@ const Profile = () => {
           setPatient(patientRes.data);
           setForm(patientRes.data);
           setPhotoPreview(patientRes.data.photo || defaultAvatar);
+        } else if (userRes.data.role === "doctor") {
+             // Industry Standard: Unified Profile
+             // Redirect doctors immediately to their listing management page
+             navigate('/doctor/create-listing', { replace: true });
+             return;
+        } else {
+             // For others, we can set default avatar
+             setPhotoPreview(defaultAvatar);
         }
       } catch (err) {
-        setError("Failed to fetch profile.");
+        toast.error("Failed to fetch profile.");
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [navigate]);
 
   const handleEdit = () => {
     console.log("Edit clicked");
@@ -76,8 +87,6 @@ const Profile = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     console.log("Save clicked");
-    setMsg("");
-    setError("");
     try {
       const token = localStorage.getItem("token");
       const data = new FormData();
@@ -90,11 +99,11 @@ const Profile = () => {
       setPatient(res.data);
       setForm(res.data);
       setEditMode(false);
-      setMsg("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       setPhotoFile(null);
       setPhotoPreview(res.data.photo || defaultAvatar);
     } catch (err) {
-      setError("Failed to update profile.");
+      toast.error("Failed to update profile.");
     }
   };
 
@@ -105,17 +114,10 @@ const Profile = () => {
       </div>
     );
 
-  if (error)
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-black to-purple-900">
-        <span className="text-2xl text-red-400">{error}</span>
-      </div>
-    );
-
   return (
     <>
         <Header1 />
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 px-4 py-20 relative overflow-hidden">
+    <div className="min-h-screen flex items-start justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 px-4 pt-9 pb-10 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0">
         <div className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl top-10 left-10 animate-pulse"></div>
@@ -171,6 +173,7 @@ const Profile = () => {
         {/* Profile Details */}
 {!editMode ? (
   <>
+    {user.role === 'patient' ? (
     <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
       {fields.map((field) => (
         <div key={field.key} className="flex flex-col items-start">
@@ -188,6 +191,20 @@ const Profile = () => {
         </div>
       ))}
     </div>
+    ) : (
+        <div className="text-center mb-8 p-6 bg-white/5 rounded-2xl border border-white/10">
+            <h3 className="text-xl text-white font-semibold mb-2">Doctor Profile</h3>
+            <p className="text-blue-200 mb-6">Your professional details, clinic info, and appointment settings are managed in your comprehensive profile.</p>
+            <button
+                onClick={() => navigate('/doctor/create-listing')}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold shadow-lg hover:shadow-purple-500/30 hover:scale-105 transition-all"
+            >
+                Go to My Profile
+            </button>
+        </div>
+    )}
+
+    {user.role === 'patient' && (
     <div className="flex justify-center mt-10">
       <button
         type="button"
@@ -200,6 +217,28 @@ const Profile = () => {
         Edit Profile
       </button>
     </div>
+    )}
+    
+    {user.role === 'doctor' && (
+      <div className="flex justify-center mt-10">
+      <button
+        type="button"
+        onClick={() => {
+            // For doctor, handleEdit toggles edit mode for the general user fields (Name, Email) if you want them editable here.
+            // But since your prompt said "different forms", let's assume this page is ONLY for User Schema details
+             // This button can now enable editing for User Name/Email if intended
+             alert("To change Name/Email, please contact support or implement User Update API. To change professional details, go to 'Create / Edit Listing'.");
+        }}
+        className="hidden group px-10 py-4 bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-500 hover:to-slate-500 text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3"
+      >
+         {/* Hidden button for now as User Update API (PUT /api/auth/profile) might not be fully implemented or requested yet. 
+             If you want to allow changing name/email here, we need a separate handler. 
+             Ideally, 'CreateListing' updates the Doctor model, while 'Profile' updates the User model.
+         */}
+        Edit Account Info
+      </button>
+      </div>
+    )}
   </>
 ) : (
   <form onSubmit={handleSave}
@@ -277,30 +316,11 @@ const Profile = () => {
         Cancel
       </button>
     </div>
-    {msg && (
-      <div className="mt-6 p-4 bg-green-500/20 border border-green-400 rounded-xl text-center">
-        <p className="text-green-200 font-semibold flex items-center justify-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {msg}
-        </p>
-      </div>
-    )}
-    {error && (
-      <div className="mt-6 p-4 bg-red-500/20 border border-red-400 rounded-xl text-center">
-        <p className="text-red-200 font-semibold flex items-center justify-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {error}
-        </p>
-      </div>
-    )}
   </form>
 )}
       </div>
     </div>
+    <Toaster position="top-right" />
     </>
   );
 };
