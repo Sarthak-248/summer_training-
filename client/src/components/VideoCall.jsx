@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -25,7 +24,7 @@ const VideoCall = ({ appointmentId, onEnd }) => {
 
   useEffect(() => {
     // Initialize Socket
-    socketRef.current = io(BACKEND_URL);
+    socketRef.current = window.io(BACKEND_URL);
 
     // Setup Listeners BEFORE emitting join
     socketRef.current.on('connect', () => {

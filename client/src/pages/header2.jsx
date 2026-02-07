@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { io } from 'socket.io-client';
 import { toast, Toaster } from 'react-hot-toast';
 import AppLogo from '../assets/logo.svg';
 
-const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+const socket = window.io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
 // Extracted ProfileMenu Component for better organization
 const ProfileMenu = ({ onLogout }) => {

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const socket = io(BACKEND_URL);
+const socket = window.io(BACKEND_URL);
 
 const DoctorNotifications = () => {
   const [notifications, setNotifications] = useState(() => {
