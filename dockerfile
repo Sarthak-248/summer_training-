@@ -25,6 +25,9 @@ WORKDIR /app
 # Copy package files first for caching
 COPY package*.json ./
 
+# Install Node dependencies for the API (production only)
+RUN npm install --production --silent --no-audit --no-fund || npm install --silent --no-audit --no-fund
+
 # Install Node.js 18 (LTS) from NodeSource for predictable Node version
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get update && apt-get install -y nodejs \
