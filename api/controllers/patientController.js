@@ -412,15 +412,15 @@ export const analyzeReport = (req, res) => {
   const filePath = path.resolve(req.file.path);
   const scriptPath = path.resolve(__dirname, "../ml/model_predictor.py");
 
-  // Path to the Python executable in the virtual environment at the project root
-  const venvPythonPath = path.resolve(__dirname, "../../.venv/Scripts/python.exe");
+  // Use python3 in production (Docker), fallback to venv for local dev
+  const pythonCmd = process.env.NODE_ENV === 'production' ? 'python3' : `"${path.resolve(__dirname, "../../.venv/Scripts/python.exe")}"`;
   
   console.log("📂 Resolved file path:", filePath);
   console.log("📜 Script path:", scriptPath);
-  console.log("🐍 Python path:", venvPythonPath);
+  console.log("🐍 Python command:", pythonCmd);
 
-  // Use the venv python interpreter
-  const command = `"${venvPythonPath}" "${scriptPath}" "${filePath}"`;
+  // Use the python interpreter
+  const command = `${pythonCmd} "${scriptPath}" "${filePath}"`;
 
   exec(command, (err, stdout, stderr) => {
     if (stderr) {
