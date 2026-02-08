@@ -148,18 +148,16 @@ app.use("/api/video-call", videoCallRoutes);
 // Protected routes
 app.use("/api/doctors", doctorRoutes); // Doctor routes mounted
 
-// Serve React build - ONLY in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../client/dist")));
+// Serve React build - in both development and production
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
-  });
-} else {
-  app.get("/", (req, res) => {
-    res.send("API is running...");
-  });
-}
+app.get("*", (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path === '/health') {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
 
 // Connect to MongoDB and start cron
 mongoose
