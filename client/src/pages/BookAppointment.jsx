@@ -290,7 +290,7 @@ const BookAppointment = () => {
 
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : '/default-doctor.jpg'}
+                    src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : 'https://api.dicebear.com/7.x/adventurer/svg?seed=doctor'}
                     alt={doc.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
@@ -364,7 +364,7 @@ const BookAppointment = () => {
                   <div className="flex items-start gap-4 mb-4">
                     <div className="relative">
                       <img
-                        src={selectedDoctor.imageUrl ? (selectedDoctor.imageUrl.startsWith('http') ? selectedDoctor.imageUrl : `${BACKEND_URL}${selectedDoctor.imageUrl}`) : "/default-doctor.jpg"}
+                        src={selectedDoctor.imageUrl ? (selectedDoctor.imageUrl.startsWith('http') ? selectedDoctor.imageUrl : `${BACKEND_URL}${selectedDoctor.imageUrl}`) : "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"}
                         alt={selectedDoctor.name}
                         className="w-20 h-20 rounded-full border-2 border-white/20 object-cover"
                       />

@@ -140,7 +140,7 @@ const FavoritesPage = () => {
               <div className="relative bg-[#0a0a0a] rounded-2xl h-full w-full overflow-hidden">
               <div className="relative overflow-hidden">
                 <img
-                  src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : '/default-doctor.jpg'}
+                  src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : 'https://api.dicebear.com/7.x/adventurer/svg?seed=doctor'}
                   alt={doc.name}
                   className="h-56 w-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
@@ -208,7 +208,7 @@ const FavoritesPage = () => {
                 {/* Doctor Info */}
                 <div className="flex items-center gap-4 mb-6">
                   <img
-                    src={selectedDoctor.imageUrl || "/default-doctor.jpg"}
+                    src={selectedDoctor.imageUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"}
                     alt={selectedDoctor.name}
                     className="w-16 h-16 rounded-full border-4 border-purple-200 shadow-lg object-cover"
                   />

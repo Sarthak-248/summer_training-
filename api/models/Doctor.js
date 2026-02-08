@@ -74,6 +74,7 @@ const doctorSchema = new mongoose.Schema({
   imageUrl: {
     type: String,
     required: true,
+    default: "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"
   },
   userRef: {
     type: mongoose.Schema.Types.ObjectId,

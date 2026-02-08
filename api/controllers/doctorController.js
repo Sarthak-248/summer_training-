@@ -36,9 +36,13 @@ export const createDoctorListing = async (req, res) => {
       linkedIn,
       awards,
       services,
-      imageUrl: req.file ? (req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`) : undefined,
       userRef: userId,
     };
+
+    // Handle image upload separately
+    if (req.file) {
+      doctorData.imageUrl = req.file.path.startsWith('http') ? req.file.path : `/uploads/${req.file.filename}`;
+    }
 
     // Prevent duplicate listing for same user
     const existing = await Doctor.findOne({ userRef: userId });

@@ -196,6 +196,29 @@ const ProfileSettings = () => {
 
         {/* Show upcoming slots - only if profile is complete */}
         {profileComplete && (
+        <>
+        {/* Doctor Profile Header */}
+        <div className="mb-8 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6">
+          <div className="flex items-center gap-6 mb-4">
+            <img
+              src={doctorProfile?.imageUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"}
+              alt={doctorProfile?.name}
+              className="w-20 h-20 rounded-full border-4 border-white/20 object-cover shadow-lg"
+            />
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-1">Dr. {doctorProfile?.name}</h2>
+              <p className="text-cyan-300 text-lg font-medium">{doctorProfile?.specialty}</p>
+              <p className="text-blue-200 text-sm">{doctorProfile?.qualifications}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-blue-200">
+            <span>📍 {doctorProfile?.clinicName}</span>
+            <span>💼 {doctorProfile?.yearsOfExperience} years experience</span>
+            <span>💰 ₹{doctorProfile?.consultationFees}</span>
+          </div>
+        </div>
+
+        {/* Current Schedule Section */}
         <div className="mb-8 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
@@ -258,6 +281,7 @@ const ProfileSettings = () => {
             </div>
           )}
         </div>
+        </>
         )}
 
         {/* Add New Slots Section */}
