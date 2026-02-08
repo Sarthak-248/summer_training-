@@ -168,8 +168,7 @@ const ProfileSettings = () => {
 
       {/* Main Container */}
       <div className="relative z-10 max-w-6xl mx-auto p-6">
-        
-        {/* Profile Completion Check */}
+        <>
         {!profileComplete && (
           <div className="mb-8 bg-red-500/20 backdrop-blur-xl rounded-3xl shadow-2xl border border-red-500/30 p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -355,6 +354,7 @@ const ProfileSettings = () => {
           </div>
         </div>
         )}
+        </>
       </div>
     </div>
   );
