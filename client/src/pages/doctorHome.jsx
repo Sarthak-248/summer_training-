@@ -1,10 +1,73 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HomeImage from '../assets/dashboardImage.webp';
+import axios from 'axios';
 
 const DoctorHome = () => {
+  const [profileComplete, setProfileComplete] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkProfileCompleteness = async () => {
+      try {
+        const res = await axios.get('/api/doctors/my-profile');
+        const doctor = res.data;
+        
+        // Check if essential profile fields are filled
+        const isComplete = doctor && 
+          doctor.specialization && 
+          doctor.experience && 
+          doctor.qualification && 
+          doctor.fees && 
+          doctor.image;
+        
+        setProfileComplete(isComplete);
+      } catch (error) {
+        console.error('Error fetching doctor profile:', error);
+        setProfileComplete(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkProfileCompleteness();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full text-white font-sans">
+      {/* Profile Update Alert */}
+      {profileComplete === false && (
+        <div className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-4 mx-10 mt-6 rounded-2xl shadow-2xl border border-red-500/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Complete Your Profile</h3>
+                <p className="text-red-100">Please update your doctor profile with all required information to start accepting appointments.</p>
+              </div>
+            </div>
+            <Link
+              to="/create-listing"
+              className="bg-white text-red-600 px-6 py-2 rounded-xl font-semibold hover:bg-red-50 transition-colors duration-200 shadow-lg"
+            >
+              Update Profile
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="flex flex-col md:flex-row items-center justify-between px-10 py-16 relative overflow-hidden">
         {/* Animated Background Elements */}
