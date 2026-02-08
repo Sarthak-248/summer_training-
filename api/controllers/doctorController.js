@@ -107,6 +107,7 @@ export const updateDoctorProfile = async (req, res) => {
     } = req.body;
 
     const updates = {
+      name,
       specialty,
       description,
       consultationFees,
