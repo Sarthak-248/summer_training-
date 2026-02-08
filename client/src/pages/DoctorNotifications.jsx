@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const socket = window.io(BACKEND_URL);
+const socket = window.io ? window.io(BACKEND_URL, {
+  transports: ['websocket', 'polling'],
+  upgrade: true,
+  rememberUpgrade: true,
+  timeout: 20000
+}) : null;
 
 const DoctorNotifications = () => {
   const [notifications, setNotifications] = useState(() => {
@@ -18,6 +23,11 @@ const DoctorNotifications = () => {
 
   // Socket logic
   useEffect(() => {
+    if (!socket) {
+      console.error('[SOCKET] Socket.io not loaded');
+      return;
+    }
+    
     const doctorId = localStorage.getItem('doctorId');
     console.log('[SOCKET] DoctorNotifications mounting. ID:', doctorId);
     

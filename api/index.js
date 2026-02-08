@@ -41,7 +41,7 @@ const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
     methods: ["GET", "POST"],
-    credentials: false
+    credentials: true
   },
 });
 

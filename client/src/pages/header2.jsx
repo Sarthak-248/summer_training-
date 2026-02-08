@@ -3,7 +3,12 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import AppLogo from '../assets/logo.svg';
 
-const socket = window.io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+const socket = window.io ? window.io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+  transports: ['websocket', 'polling'],
+  upgrade: true,
+  rememberUpgrade: true,
+  timeout: 20000
+}) : null;
 
 // Extracted ProfileMenu Component for better organization
 const ProfileMenu = ({ onLogout }) => {
@@ -100,6 +105,11 @@ const DoctorNavbar = () => {
   }, [notifications]);
 
   useEffect(() => {
+    if (!socket) {
+      console.error('[SOCKET] Socket.io not loaded');
+      return;
+    }
+    
     // Register doctor socket connection
     const doctorId = localStorage.getItem('doctorId');
     console.log('[SOCKET] Registering doctor socket with ID:', doctorId);
