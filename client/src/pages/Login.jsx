@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 import AppLogo from '../assets/logo.svg';
 
@@ -141,9 +141,9 @@ const Login = () => {
                 <div className="mt-8 text-center">
                     <p className="text-blue-200 text-sm">
                         Don't have an account?{" "}
-                        <a href="/signup" className="text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2 transition-colors">
+                        <Link to="/signup" className="text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2 transition-colors">
                             Sign up here
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 import AppLogo from '../assets/logo.svg';
 
@@ -149,9 +149,9 @@ const handleSignup = async (e) => {
                 <div className="mt-8 text-center">
                     <p className="text-blue-200 text-sm">
                         Already have an account?{" "}
-                        <a href="/login" className="text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2 transition-colors">
+                        <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2 transition-colors">
                             Sign in here
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </div>
