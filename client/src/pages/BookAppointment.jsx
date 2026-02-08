@@ -52,7 +52,7 @@ const BookAppointment = () => {
     const fetchDoctors = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('/api/doctors/available');
+        const res = await axios.get('/api/doctors/all');
         setDoctors(res.data);
       } catch (err) {
         console.error('Error fetching doctors:', err);
