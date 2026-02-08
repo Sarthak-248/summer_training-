@@ -53,7 +53,13 @@ const AppRoutes = () => {
         <Route path="scheduled-appointments" element={<ScheduledAppointment />}/>
         <Route path="consult-history" element={<ConsultHistory />} />
         <Route path="/doctor/patienthistory/:id" element={<PatientHistory />} />       
-        <Route path="set-availability" element={<ProfileSettings />} />
+        <Route path="set-availability" element={
+          role === "doctor" ? (
+            <ProfileSettings />
+          ) : (
+            <Navigate to="/doctor/update-profile" replace />
+          )
+        } />
         <Route path="notifications" element={<DoctorNotifications />} />
         <Route path="about" element={<About />} />
         <Route path="create-listing" element={<CreateListing />} />

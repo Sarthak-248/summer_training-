@@ -234,7 +234,11 @@ export const getScheduledAppointments = async (req, res) => {
 export const setAvailability = async (req, res) => {
   try {
     const doctor = await Doctor.findOne({ userRef: req.user._id });
-    if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+    if (!doctor) {
+      return res.status(403).json({ 
+        message: "Please update your profile to set available time slots." 
+      });
+    }
 
     // Expecting availability in req.body.availability (array of slots)
     doctor.availability = req.body.availability;

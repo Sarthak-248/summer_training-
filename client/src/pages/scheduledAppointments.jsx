@@ -45,9 +45,14 @@ const ScheduledAppointment = () => {
   };
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchAppointments();
-    setRefreshing(false);
+    try {
+      setRefreshing(true);
+      await fetchAppointments();
+    } catch (error) {
+      console.error("Error during refresh", error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
