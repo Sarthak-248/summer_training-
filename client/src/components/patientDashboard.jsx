@@ -49,7 +49,7 @@ const PatientDashboard = () => {
 const saveMedicalHistory = async () => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.post("http://localhost:5000/api/patient/post-history",
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/patient/post-history`,
       { answers },
       {
         headers: {

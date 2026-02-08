@@ -13,7 +13,7 @@ const PaymentComponent = ({ appointmentId, doctorName, amount, onSuccess, onClos
       // Create payment order
       const token = localStorage.getItem('token');
       const orderResponse = await axios.post(
-        `http://localhost:5000/api/payment/create-order/${appointmentId}`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create-order/${appointmentId}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -35,7 +35,7 @@ const PaymentComponent = ({ appointmentId, doctorName, amount, onSuccess, onClos
              
              try {
                 const verifyResponse = await axios.post(
-                  `http://localhost:5000/api/payment/verify/${appointmentId}`,
+                  `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/verify/${appointmentId}`,
                   mockResponse,
                   { headers: { Authorization: `Bearer ${token}` } }
                 );
@@ -73,7 +73,7 @@ const PaymentComponent = ({ appointmentId, doctorName, amount, onSuccess, onClos
           try {
             // Verify payment
             const verifyResponse = await axios.post(
-              `http://localhost:5000/api/payment/verify/${appointmentId}`,
+              `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/verify/${appointmentId}`,
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
