@@ -266,6 +266,20 @@ const ScheduledAppointment = () => {
          </div>
       )}
 
+      {/* Update Time Slot Button */}
+      <button 
+        onClick={() => {
+          if (!doctorProfileUpdated) {
+            showToast("Please update your profile to set available time slots.", "warning");
+          } else {
+            handleUpdateTimeSlot();
+          }
+        }}
+        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-blue-500/20 transition-all active:transform active:scale-95"
+      >
+        Update Time Slot
+      </button>
+
     </div>
   );
 };
@@ -273,7 +287,7 @@ const ScheduledAppointment = () => {
 // --- Sub Components ---
 
 const StatCard = ({ label, value, icon, color, borderColor, textColor }) => (
-    <div className={`bg-gradient-to-br ${color} backdrop-blur-lg border ${borderColor} p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1`}>
+    <div className={`bg-linear-to-br ${color} backdrop-blur-lg border ${borderColor} p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1`}>
         <div className="flex justify-between items-start">
             <div>
                 <p className="text-white text-sm font-semibold uppercase tracking-wider">{label}</p>
@@ -341,7 +355,7 @@ const AppointmentCard = ({ appt, currentTime, loading, onAccept, onCancel }) => 
             {/* Header / User Info */}
             <div className="relative z-10 mb-6 mt-2">
                 <div className="flex items-center gap-4 mb-3">
-                   <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-lg ring-2 ring-white/10">
+                   <div className="w-12 h-12 rounded-full bg-linear-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-lg ring-2 ring-white/10">
                         {appt.patientName ? appt.patientName.charAt(0).toUpperCase() : <FaUserAlt />}
                    </div>
                    <div>
@@ -416,7 +430,7 @@ const AppointmentCard = ({ appt, currentTime, loading, onAccept, onCancel }) => 
                          <button 
                              onClick={onAccept}
                              disabled={loading}
-                             className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                             className="flex items-center justify-center gap-2 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                          >
                             {loading ? "..." : <><FaCheck /> Accept</>}
                          </button>
@@ -437,7 +451,7 @@ const AppointmentCard = ({ appt, currentTime, loading, onAccept, onCancel }) => 
                          {isReadyForCall && (
                             <button 
                               onClick={() => window.open(`/video-call/${appt._id}`, '_blank')}
-                              className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 animate-pulse flex items-center justify-center gap-2 transition-all"
+                              className="flex-1 py-2.5 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 animate-pulse flex items-center justify-center gap-2 transition-all"
                             >
                                <FaVideo /> Join Call
                                {hasStarted && (
