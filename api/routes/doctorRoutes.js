@@ -2,6 +2,7 @@ import express from "express";
 import {
   setAvailability,
   getAvailableDoctors,
+  getAllDoctors,
   createDoctorListing,
   getScheduledAppointments,
   getPatientHistory,
@@ -17,7 +18,7 @@ import {
   //tAvailableDoctors//nt this for /availability/:doctorId
 } from "../controllers/doctorController.js";
 import { verifyDoctor, authenticate } from "../middlewares/authMiddleware.js";
-import parser from "../middlewares/localMulter.js";
+import parser from "../middlewares/multerCloudinary.js";
 import { getMyProfile } from "../controllers/doctorController.js";
 import { updateDoctorProfile } from "../controllers/doctorController.js";
 import { updatePatientProfile } from "../controllers/patientController.js";
@@ -36,6 +37,9 @@ router.get("/availability/:doctorId", getAvailableDoctors);
 
 // Route to create a doctor listing with image upload
 router.post("/create-listing", authenticate, verifyDoctor, parser.single('image'), createDoctorListing);
+
+// Route to get all doctors
+router.get("/all", getAllDoctors);
 
 // Route to get all currently available doctors based on current server time
 router.get("/available", getAvailableDoctors);

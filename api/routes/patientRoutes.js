@@ -7,7 +7,7 @@ import { analyzeReport } from "../controllers/patientController.js";
 import {addDoctorToFavorites} from "../controllers/patientController.js";
 import { getPatientProfile, updatePatientProfile } from "../controllers/patientController.js";
 import parser from "../middlewares/multerCloudinary.js";
-import localUpload from "../middlewares/localMulter.js";
+import localUpload from "../middlewares/multerCloudinary.js";
 
 const router = express.Router();
 
