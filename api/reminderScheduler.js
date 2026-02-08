@@ -42,37 +42,41 @@ const sendReminderEmail = async (email, name, time, doctor, hours) => {
 
 const reminderScheduler = () => {
   cron.schedule('* * * * *', async () => {
-    const now = moment().tz('Asia/Kolkata');
+    try {
+      const now = moment().tz('Asia/Kolkata');
 
-    const doctors = await Doctor.find();
+      const doctors = await Doctor.find();
 
-    for (let doc of doctors) {
-      let updated = false;
+      for (let doc of doctors) {
+        let updated = false;
 
-      for (let appt of doc.appointments) {
-        if (!appt.appointmentTime) continue;
+        for (let appt of doc.appointments) {
+          if (!appt.appointmentTime) continue;
 
-        const apptTime = moment(appt.appointmentTime).tz('Asia/Kolkata');
-        const diff = apptTime.diff(now, 'hours', true); // fractional hours
+          const apptTime = moment(appt.appointmentTime).tz('Asia/Kolkata');
+          const diff = apptTime.diff(now, 'hours', true); // fractional hours
 
-        console.log(`🔍 Checking appointment for ${appt.patientName}: ${diff.toFixed(2)} hours remaining`);
+          console.log(`🔍 Checking appointment for ${appt.patientName}: ${diff.toFixed(2)} hours remaining`);
 
-        if (diff > 23.5 && diff < 24.5 && !appt.notifiedTwentyFourHours) {
-          await sendReminderEmail(appt.patientContact, appt.patientName, apptTime, doc.name, 24);
-          appt.notifiedTwentyFourHours = true;
-          updated = true;
+          if (diff > 23.5 && diff < 24.5 && !appt.notifiedTwentyFourHours) {
+            await sendReminderEmail(appt.patientContact, appt.patientName, apptTime, doc.name, 24);
+            appt.notifiedTwentyFourHours = true;
+            updated = true;
+          }
+
+          if (diff > 0.5 && diff < 1.5 && !appt.notifiedOneHour) {
+            await sendReminderEmail(appt.patientContact, appt.patientName, apptTime, doc.name, 1);
+            appt.notifiedOneHour = true;
+            updated = true;
+          }
         }
 
-        if (diff > 0.5 && diff < 1.5 && !appt.notifiedOneHour) {
-          await sendReminderEmail(appt.patientContact, appt.patientName, apptTime, doc.name, 1);
-          appt.notifiedOneHour = true;
-          updated = true;
+        if (updated) {
+          await doc.save();
         }
       }
-
-      if (updated) {
-        await doc.save();
-      }
+    } catch (error) {
+      console.error('❌ Error in reminder scheduler:', error);
     }
   });
 

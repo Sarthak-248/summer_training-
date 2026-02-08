@@ -134,7 +134,11 @@ const __dirname = path.dirname(__filename);
 // API routes (must come before static files and catch-all route)
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
 // Public routes
@@ -152,7 +156,7 @@ app.use("/api/doctors", doctorRoutes); // Doctor routes mounted
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
 app.get("*", (req, res) => {
-  // Skip API routes
+  // Skip API routes (though they should be handled above)
   if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path === '/health') {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
@@ -177,7 +181,19 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, "0.0.0.0", () =>
-  console.log(`✅ Server running on http://localhost:${PORT}`)
+  console.log(`✅ Server running on port ${PORT}`)
 );
