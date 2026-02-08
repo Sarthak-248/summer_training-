@@ -234,7 +234,7 @@ export const getScheduledAppointments = async (req, res) => {
 export const setAvailability = async (req, res) => {
   try {
     const doctor = await Doctor.findOne({ userRef: req.user._id });
-    if (!doctor) {
+    if (!doctor || !doctor.isListed) {
       return res.status(403).json({ 
         message: "Please update your profile to set available time slots." 
       });

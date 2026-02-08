@@ -184,7 +184,7 @@ const ProfileSettings = () => {
               First update your profile to set available time slots. You need to create your doctor profile before you can manage your availability.
             </p>
             <button
-              onClick={() => window.location.href = '/doctor/update-profile'}
+              onClick={() => window.location.href = '/doctor/create-listing'}
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
