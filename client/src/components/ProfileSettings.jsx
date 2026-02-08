@@ -169,7 +169,34 @@ const ProfileSettings = () => {
       {/* Main Container */}
       <div className="relative z-10 max-w-6xl mx-auto p-6">
         <>
-        {!profileComplete && (
+        {/* Check if doctor exists in database */}
+        {doctorProfile === null && (
+          <div className="mb-8 bg-orange-500/20 backdrop-blur-xl rounded-3xl shadow-2xl border border-orange-500/30 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-white">Doctor Profile Required</h2>
+            </div>
+            <p className="text-orange-200 text-lg mb-4">
+              First update your profile to set available time slots. You need to create your doctor profile before you can manage your availability.
+            </p>
+            <button
+              onClick={() => window.location.href = '/doctor/create-listing'}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Update Profile
+            </button>
+          </div>
+        )}
+
+        {/* Show profile incomplete message if doctor exists but profile is not complete */}
+        {doctorProfile && !profileComplete && (
           <div className="mb-8 bg-red-500/20 backdrop-blur-xl rounded-3xl shadow-2xl border border-red-500/30 p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
@@ -194,8 +221,8 @@ const ProfileSettings = () => {
           </div>
         )}
 
-        {/* Show upcoming slots - only if profile is complete */}
-        {profileComplete && (
+        {/* Show upcoming slots - only if doctor exists and profile is complete */}
+        {doctorProfile && profileComplete && (
         <>
         {/* Doctor Profile Header */}
         <div className="mb-8 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6">
