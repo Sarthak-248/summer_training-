@@ -146,7 +146,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/video-call", videoCallRoutes);
 
 // Protected routes
-app.use("/api/doctors", doctorRoutes);
+app.use("/api/doctors", doctorRoutes); // Doctor routes mounted
 
 // Serve React build - ONLY in production
 if (process.env.NODE_ENV === "production") {
