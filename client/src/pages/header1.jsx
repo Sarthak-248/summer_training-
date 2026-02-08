@@ -205,7 +205,7 @@ const PatientNavbar = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   const NavLink = ({ to, children }) => {
