@@ -441,13 +441,59 @@ export const analyzeReport = async (req, res) => {
     const scriptPath = path.resolve(__dirname, "../ml/model_predictor.py");
 
     // Use python3 in production (Docker), fallback to venv for local dev
-    const pythonCmd = process.env.NODE_ENV === 'production' ? 'python3' : `"${path.resolve(__dirname, "../../.venv/Scripts/python.exe")}"`;
+    // Check multiple possible Python commands
+    let pythonCmd;
+    const possiblePythonCmds = ['python3', 'python', '/usr/bin/python3', '/usr/bin/python'];
+    
+    if (process.env.NODE_ENV === 'production') {
+      // Try to find working Python command
+      for (const cmd of possiblePythonCmds) {
+        try {
+          await execAsync(`${cmd} --version`);
+          pythonCmd = cmd;
+          console.log("✅ Found working Python command:", cmd);
+          break;
+        } catch (e) {
+          console.log("❌ Python command failed:", cmd, e.message);
+        }
+      }
+      if (!pythonCmd) {
+        return res.status(500).json({ error: "No working Python interpreter found" });
+      }
+    } else {
+      pythonCmd = `"${path.resolve(__dirname, "../../.venv/Scripts/python.exe")}"`;
+    }
     
     console.log("📜 Script path:", scriptPath);
     console.log("🐍 Python command:", pythonCmd);
+    console.log("📁 Temp file path:", tempFilePath);
+    console.log("🌍 NODE_ENV:", process.env.NODE_ENV);
+
+    // Check if files exist before running
+    const fs = require('fs');
+    if (!fs.existsSync(scriptPath)) {
+      console.error("❌ Python script not found:", scriptPath);
+      return res.status(500).json({ error: "ML script not found" });
+    }
+    if (!fs.existsSync(path.resolve(__dirname, "../rf_model.joblib"))) {
+      console.error("❌ Model file not found:", path.resolve(__dirname, "../rf_model.joblib"));
+      return res.status(500).json({ error: "ML model file not found" });
+    }
+
+    // Test Python availability first
+    try {
+      const testCommand = `${pythonCmd} --version`;
+      console.log("🧪 Testing Python command:", testCommand);
+      const { stdout: pythonVersion } = await execAsync(testCommand);
+      console.log("✅ Python version:", pythonVersion.trim());
+    } catch (pythonError) {
+      console.error("❌ Python command failed:", pythonError.message);
+      return res.status(500).json({ error: "Python environment not available", details: pythonError.message });
+    }
 
     // Use the python interpreter
     const command = `${pythonCmd} "${scriptPath}" "${tempFilePath}"`;
+    console.log("🚀 Executing command:", command);
 
     const { stdout, stderr } = await execAsync(command);
 
