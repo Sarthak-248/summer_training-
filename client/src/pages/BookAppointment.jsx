@@ -75,22 +75,17 @@ const BookAppointment = () => {
         if (typeof slot === 'string') {
           timeString = slot;
         } else if (slot && typeof slot === 'object' && slot.start) {
-          timeString = slot.start;
+          // Handle ISO string format
+          if (slot.start.includes('T')) {
+            const date = new Date(slot.start);
+            timeString = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+          } else {
+            timeString = slot.start;
+          }
         } else {
           return ''; // invalid, skip
         }
-        // Now normalize the timeString
-        if (timeString.includes('T')) {
-          // ISO format like "2023-10-01T09:00:00.000Z", extract HH:MM
-          const timePart = timeString.split('T')[1];
-          if (timePart) {
-            return timePart.split(':').slice(0, 2).join(':');
-          }
-        } else if (timeString.split(':').length >= 2) {
-          // HH:MM:SS or HH:MM, take HH:MM
-          return timeString.split(':').slice(0, 2).join(':');
-        }
-        return timeString; // fallback
+        return timeString;
       }).filter(Boolean); // remove empty strings
       console.log('normalizedBookedSlots:', normalizedBookedSlots);
       setDoctorSlots(res.data.slots || []);

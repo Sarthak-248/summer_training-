@@ -206,16 +206,10 @@ export const getDoctorSlotsForDate = async (req, res) => {
         app.appointmentTime <= endOfDay && 
         ['Pending', 'Confirmed'].includes(app.status)
       )
-      .map(app => {
-        // Convert UTC time to local time for display
-        const localStartTime = new Date(app.appointmentTime);
-        const localEndTime = app.appointmentEndTime ? new Date(app.appointmentEndTime) : null;
-        
-        return {
-          start: `${localStartTime.getHours().toString().padStart(2, '0')}:${localStartTime.getMinutes().toString().padStart(2, '0')}`,
-          end: localEndTime ? `${localEndTime.getHours().toString().padStart(2, '0')}:${localEndTime.getMinutes().toString().padStart(2, '0')}` : null
-        };
-      });
+      .map(app => ({
+        start: app.appointmentTime.toISOString(),
+        end: app.appointmentEndTime ? app.appointmentEndTime.toISOString() : null
+      }));
 
     res.status(200).json({
       slots: availability?.slots || [],
