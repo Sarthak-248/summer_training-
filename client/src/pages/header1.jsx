@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast, Toaster } from 'react-hot-toast';
+import { showSuccessToast } from '../utils/toastUtils';
 import AppLogo from '../assets/logo.svg';
 
 const socket = window.io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
@@ -140,40 +141,45 @@ const PatientNavbar = () => {
         }
       }
 
-      // Trigger Toast
-      toast.custom((t) => (
-        <div
-          className={`${
-            t.visible ? 'animate-enter' : 'animate-leave'
-          } max-w-md w-full bg-slate-900 border border-white/10 shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5 z-[9999]`}
-        >
-          <div className="flex-1 w-0 p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 pt-0.5">
-               <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold">
-                  🔔
-               </div>
-              </div>
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-white">
-                  Appointment Update
-                </p>
-                <p className="mt-1 text-sm text-slate-300">
-                  {message}
-                </p>
+      // Show success toast for confirmed appointments, custom toast for others
+      if (data.status === 'Confirmed') {
+        showSuccessToast("Appointment Confirmed", message);
+      } else {
+        // Trigger Toast for other status updates
+        toast.custom((t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-md w-full bg-slate-900 border border-white/10 shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5 z-[9999]`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                 <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                    🔔
+                 </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-white">
+                    Appointment Update
+                  </p>
+                  <p className="mt-1 text-sm text-slate-300">
+                    {message}
+                  </p>
+                </div>
               </div>
             </div>
+            <div className="flex border-l border-white/10">
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-cyan-500 hover:text-cyan-400 focus:outline-none hover:bg-white/5 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
-          <div className="flex border-l border-white/10">
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-cyan-500 hover:text-cyan-400 focus:outline-none hover:bg-white/5 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      ), { duration: 5000 });
+        ), { duration: 5000 });
+      }
 
       const newNotification = {
         id: Date.now(),

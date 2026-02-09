@@ -32,9 +32,10 @@ const DoctorNotifications = () => {
     console.log('[SOCKET] DoctorNotifications mounting. ID:', doctorId);
     
     const register = () => {
-        if (doctorId) {
-            socket.emit('registerDoctor', doctorId);
-            console.log('[SOCKET] Emitted registerDoctor');
+        const currentDoctorId = localStorage.getItem('doctorId');
+        if (currentDoctorId) {
+            socket.emit('registerDoctor', currentDoctorId);
+            console.log('[SOCKET] Emitted registerDoctor for:', currentDoctorId);
         }
     };
 
@@ -44,6 +45,29 @@ const DoctorNotifications = () => {
         console.log('[SOCKET] Reconnected, re-registering doctor');
         register();
     });
+
+    // Listen for storage changes to re-register when doctorId is set
+    const handleStorageChange = (e) => {
+      if (e.key === 'doctorId' && e.newValue) {
+        console.log('[SOCKET] doctorId changed in DoctorNotifications, re-registering:', e.newValue);
+        socket.emit('registerDoctor', e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also check periodically for doctorId (for same-tab changes)
+    let lastDoctorId = null;
+    const checkDoctorId = () => {
+      const currentDoctorId = localStorage.getItem('doctorId');
+      if (currentDoctorId && currentDoctorId !== lastDoctorId) {
+        console.log('[SOCKET] doctorId found on check in DoctorNotifications, registering:', currentDoctorId);
+        socket.emit('registerDoctor', currentDoctorId);
+        lastDoctorId = currentDoctorId;
+      }
+    };
+
+    const intervalId = setInterval(checkDoctorId, 2000); // Check every 2 seconds
 
     socket.on('newAppointment', (data) => {
       const newNotification = {
@@ -94,6 +118,8 @@ const DoctorNotifications = () => {
       socket.off('newAppointment');
       socket.off('paymentReceived');
       socket.off('connect');
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
     };
   }, []);
 

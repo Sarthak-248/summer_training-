@@ -96,6 +96,9 @@ const UpcomingAppointments = () => {
       )
     );
     
+    // Re-fetch to ensure consistency
+    fetchAppointments();
+    
     setShowPayment(false);
     setSelectedAppointment(null);
     

@@ -60,7 +60,7 @@ io.on("connection", (socket) => {
     if (!doctorSockets[doctorId].includes(socket.id)) {
       doctorSockets[doctorId].push(socket.id);
     }
-    socket.join("doctors"); // Join doctors room
+    socket.join(doctorId); // Join doctor-specific room
     console.log(`[SOCKET] Doctor ${doctorId} registered with socket ${socket.id}. Current map keys: ${Object.keys(doctorSockets)}`);
   });
 
@@ -70,7 +70,7 @@ io.on("connection", (socket) => {
     if (!patientSockets[patientId].includes(socket.id)) {
       patientSockets[patientId].push(socket.id);
     }
-    socket.join("patients"); // Join patients room
+    socket.join(patientId); // Join patient-specific room
     console.log(`Patient ${patientId} joined 'patients' room`);
   });
 

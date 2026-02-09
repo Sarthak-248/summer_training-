@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { showSuccessToast } from '../utils/toastUtils';
 
 const PaymentComponent = ({ appointmentId, doctorName, amount, onSuccess, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -41,15 +42,8 @@ const PaymentComponent = ({ appointmentId, doctorName, amount, onSuccess, onClos
                 );
 
                 if (verifyResponse.data.success) {
+                   showSuccessToast("Payment Successful", `Payment of ₹${amount} completed successfully (Test Mode)`);
                    onSuccess(mockResponse.razorpay_payment_id);
-                   /* [DISABLED]
-                   if (Notification.permission === 'granted') {
-                    new Notification('Payment Successful!', {
-                      body: `Payment of ₹${amount} completed successfully (Test Mode)`,
-                      icon: '/icons/payment-success.png',
-                    });
-                   }
-                   */
                 } else {
                    setError('Payment verification failed');
                 }
@@ -87,15 +81,8 @@ const PaymentComponent = ({ appointmentId, doctorName, amount, onSuccess, onClos
             if (verifyResponse.data.success) {
               console.log('Payment verification successful:', verifyResponse.data);
               
-              // Show success notification [DISABLED]
-              /*
-              if (Notification.permission === 'granted') {
-                new Notification('Payment Successful!', {
-                  body: `Payment of ₹${amount} completed successfully`,
-                  icon: '/icons/payment-success.png',
-                });
-              }
-              */
+              // Show success toast
+              showSuccessToast("Payment Successful", `Payment of ₹${amount} completed successfully`);
               
               onSuccess(response.razorpay_payment_id);
             } else {

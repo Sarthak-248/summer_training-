@@ -21,7 +21,7 @@ const migrateDoctorImages = async () => {
       },
       {
         $set: {
-          imageUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"
+          imageUrl: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
         }
       }
     );
@@ -39,7 +39,7 @@ const migrateDoctorImages = async () => {
       },
       {
         $set: {
-          imageUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"
+          imageUrl: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
         }
       }
     );

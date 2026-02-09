@@ -55,20 +55,15 @@ export const createPaymentOrder = async (req, res) => {
     try {
       order = await razorpay.orders.create(options);
     } catch (rzpError) {
-      console.warn("Razorpay order creation failed (likely due to invalid keys). switching to Mock Mode.");
+      console.warn("Razorpay order creation failed (likely due to invalid keys). Switching to Mock Mode.");
       // Create a mock order for testing
-      const isMock = process.env.RAZORPAY_KEY_ID?.includes('demo') || true;
-      if (isMock) {
-        order = {
-          id: `order_mock_${Date.now()}`,
-          amount: amount,
-          currency: 'INR',
-          status: 'created',
-          receipt: `appointment_${appointmentId}`,
-        };
-      } else {
-        throw rzpError;
-      }
+      order = {
+        id: `order_mock_${Date.now()}`,
+        amount: amount,
+        currency: 'INR',
+        status: 'created',
+        receipt: `appointment_${appointmentId}`,
+      };
     }
     
     // Save order ID to appointment
@@ -102,13 +97,25 @@ export const verifyPayment = async (req, res) => {
 
     // Handle Mock Payment Verification
     if (razorpay_order_id && razorpay_order_id.startsWith('order_mock_')) {
-      console.log('Verifying Mock Payment for order:', razorpay_order_id);
+      console.log('Verifying Mock Payment for order:', razorpay_order_id, 'appointmentId:', appointmentId);
       
       const doctor = await Doctor.findOne({ 'appointments._id': appointmentId });
-      if (!doctor) return res.status(404).json({ message: 'Appointment not found' });
+      if (!doctor) {
+        console.log('Doctor not found for appointmentId:', appointmentId);
+        return res.status(404).json({ message: 'Appointment not found' });
+      }
       
       const appointment = doctor.appointments.id(appointmentId);
-      if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+      if (!appointment) {
+        console.log('Appointment not found in doctor');
+        return res.status(404).json({ message: 'Appointment not found' });
+      }
+
+      // Check if appointment belongs to the patient
+      if (appointment.patientRef.toString() !== patientId.toString()) {
+        console.log('Unauthorized: appointment patientRef', appointment.patientRef, 'patientId', patientId);
+        return res.status(403).json({ message: 'Unauthorized access' });
+      }
       
       appointment.paymentStatus = 'Paid';
       appointment.paymentId = razorpay_payment_id || `pay_mock_${Date.now()}`;
@@ -116,23 +123,15 @@ export const verifyPayment = async (req, res) => {
 
       // Notify Doctor (Socket Logic)
       const io = req.app.get("io");
-      const doctorSockets = req.app.get("doctorSockets");
       const doctorIdStr = doctor._id.toString();
       
-      console.log('[MOCK PAY] Attempting to notify doctor:', doctorIdStr);
-      if (doctorSockets && doctorSockets[doctorIdStr] && doctorSockets[doctorIdStr].length > 0) {
-        console.log('[MOCK PAY] Found sockets for doctor, emitting event.');
-        doctorSockets[doctorIdStr].forEach(socketId => {
-          io.to(socketId).emit("paymentReceived", {
-            appointmentId: appointmentId,
-            patientName: appointment.patientName,
-            amount: appointment.amount,
-            paymentId: appointment.paymentId
-          });
-        });
-      } else {
-        console.log('[MOCK PAY] Doctor socket not found. Available keys:', Object.keys(doctorSockets || {}));
-      }
+      console.log('[MOCK PAY] Emitting paymentReceived to doctor:', doctorIdStr);
+      io.to(doctorIdStr).emit("paymentReceived", {
+        appointmentId: appointmentId,
+        patientName: appointment.patientName,
+        amount: appointment.amount,
+        paymentId: appointment.paymentId
+      });
 
       return res.json({
         success: true,
@@ -164,6 +163,10 @@ export const verifyPayment = async (req, res) => {
       .update(body.toString())
       .digest('hex');
 
+    console.log('[PAYMENT VERIFY] Body:', body);
+    console.log('[PAYMENT VERIFY] Expected signature:', expectedSignature);
+    console.log('[PAYMENT VERIFY] Received signature:', razorpay_signature);
+
     if (expectedSignature !== razorpay_signature) {
       appointment.paymentStatus = 'Failed';
       await doctor.save();
@@ -177,24 +180,15 @@ export const verifyPayment = async (req, res) => {
 
     // Send notification to doctor about successful payment
     const io = req.app.get('io');
-    const doctorSockets = req.app.get('doctorSockets');
-    // Fix: access doctorSockets using doctor._id, not userRef, consistent with socket registration
-    const doctorSocketIds = doctorSockets[doctor._id.toString()];
-    console.log('[NOTIFY] Sending paymentReceived to doctor:', doctor._id.toString(), 'socketIds:', doctorSocketIds);
+    const doctorIdStr = doctor._id.toString();
+    console.log('[NOTIFY] Emitting paymentReceived to doctor:', doctorIdStr);
     
-    if (doctorSocketIds && doctorSocketIds.length > 0) {
-      doctorSocketIds.forEach(socketId => {
-        io.to(socketId).emit('paymentReceived', {
-          appointmentId: appointmentId,
-          patientName: appointment.patientName,
-          amount: appointment.amount,
-          paymentId: razorpay_payment_id,
-        });
-      });
-      console.log('[NOTIFY] Emitted paymentReceived to doctor', doctor.userRef?.toString());
-    } else {
-      console.log('[NOTIFY] No socketId found for doctor', doctor.userRef?.toString());
-    }
+    io.to(doctorIdStr).emit('paymentReceived', {
+      appointmentId: appointmentId,
+      patientName: appointment.patientName,
+      amount: appointment.amount,
+      paymentId: razorpay_payment_id,
+    });
 
     res.json({
       success: true,

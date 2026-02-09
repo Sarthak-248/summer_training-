@@ -20,25 +20,29 @@ export const authenticate = (req, res, next) => {
       return res.status(500).json({ message: "Server misconfiguration" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("✅ Decoded token:", decoded);
+      console.log("🧾 Decoded Token ID:", decoded._id || decoded.id);
 
-    console.log("✅ Decoded token:", decoded);
-    console.log("🧾 Decoded Token ID:", decoded._id || decoded.id);
+      // Attach user info to request
+      req.user = {
+        _id: decoded._id || decoded.id,  // based on what you encoded
+        role: decoded.role,
+        name: decoded.name,
+        contact: decoded.contact,
+      };
 
-    // Attach user info to request
-    req.user = {
-      _id: decoded._id || decoded.id,  // based on what you encoded
-      role: decoded.role,
-      name: decoded.name,
-      contact: decoded.contact,
-    };
-
-    console.log("🧑‍⚕️ Attached user to request:", req.user);
-    next();
+      console.log("🧑‍⚕️ Attached user to request:", req.user);
+      next();
+    } catch (tokenError) {
+      console.error("❌ Token verification failed:", tokenError.message);
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
 
   } catch (err) {
-    console.error("❌ Token verification failed:", err.message);
-    return res.status(403).json({ message: "Invalid or expired token" });
+    console.error("❌ Unexpected error in authentication middleware:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

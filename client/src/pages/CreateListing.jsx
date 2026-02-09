@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 
-const defaultAvatar = "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor";
+const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
 // All doctor profile fields
 const doctorFields = [
@@ -47,7 +47,7 @@ const CreateListing = () => {
         setUser(userRes.data);
 
         // Get doctor profile
-        const docRes = await axios.get("/api/doctors/my-profile", {
+        const docRes = await axios.get("/api/doctors/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setDoctor(docRes.data);
@@ -58,6 +58,8 @@ const CreateListing = () => {
         });
         setPhotoPreview(docRes.data.imageUrl || defaultAvatar);
         setEditMode(false);
+        // Store doctorId for socket notifications
+        localStorage.setItem('doctorId', docRes.data._id);
       } catch (err) {
         // If no profile, prefill name/email from user
         try {
@@ -105,7 +107,7 @@ const CreateListing = () => {
     
     // Validate required fields dynamically
     const missingFields = doctorFields
-      .filter(field => field.required && (!form[field.key] || !form[field.key].toString().trim()))
+      .filter(field => field.required && (!form[field.key] || (typeof form[field.key] === 'string' && !form[field.key].toString().trim()) || (field.key === 'consultationFees' && (form[field.key] === 0 || form[field.key] === '0'))))
       .map(field => field.label);
 
     if (
@@ -138,7 +140,7 @@ const CreateListing = () => {
       // If doctor profile exists, update; else, create
       let res;
       try {
-        res = await axios.put("/api/doctors/my-profile", data, {
+        res = await axios.put("/api/doctors/profile", data, {
           headers: { Authorization: `Bearer ${token}` },
         });
         showSuccessToast('Profile Updated', 'Your doctor profile has been updated successfully!');
@@ -157,6 +159,8 @@ const CreateListing = () => {
       setPhotoPreview(res.data.imageUrl || photoPreview);
       setEditMode(false);
       setPhotoFile(null);
+      // Store doctorId for socket notifications
+      localStorage.setItem('doctorId', res.data._id);
     } catch (err) {
       const errMsg = err.response?.data?.message || "Failed to save profile.";
       setError(errMsg);
@@ -327,6 +331,7 @@ const CreateListing = () => {
                         value={form[field.key] || ""}
                         onChange={handleChange}
                         placeholder={`Enter ${field.label.toLowerCase()}`}
+                        min={field.key === 'consultationFees' ? '1' : undefined}
                         className="w-full px-4 py-3 rounded-xl border-2 border-purple-300/30 bg-white/10 text-white placeholder:text-purple-300/50 focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all backdrop-blur-sm"
                       />
                     )}

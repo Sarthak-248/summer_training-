@@ -8,6 +8,7 @@ import {addDoctorToFavorites} from "../controllers/patientController.js";
 import { getPatientProfile, updatePatientProfile } from "../controllers/patientController.js";
 import parser from "../middlewares/multerCloudinary.js";
 import localUpload from "../middlewares/multerCloudinary.js";
+import { patientParser } from "../middlewares/multerCloudinary.js";
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.post("/post-history",authenticate,postHistory);
 // // Get All Favorites
 
 router.get("/profile", authenticate, getPatientProfile);
-router.put("/profile", authenticate, localUpload.single("photo"), updatePatientProfile);
-router.post("/analyze-report", localUpload.single("report"), analyzeReport);
+router.put("/profile", authenticate, patientParser.single("photo"), updatePatientProfile);
+router.post("/analyze-report", patientParser.single("report"), analyzeReport);
 
 export default router;

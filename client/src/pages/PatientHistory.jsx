@@ -7,6 +7,7 @@ import { FaArrowLeft, FaNotesMedical } from 'react-icons/fa';
 export default function PatientHistory() {
   const { id } = useParams(); // patient ID from URL
   const navigate = useNavigate();
+  console.log('PatientHistory component - patient ID from URL:', id);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,17 +18,65 @@ export default function PatientHistory() {
   const fetchHistory = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/patient-history/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setHistory(res.data.history);
+      
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+      
+      if (!id) {
+        setError('Patient ID is missing.');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching patient history for ID:', id);
+      console.log('Using token:', token ? 'Token exists' : 'No token');
+      
+      const apiUrl = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/patient-history/${id}`;
+      console.log('API URL:', apiUrl);
+      
+      // Test basic connectivity
+      try {
+        const testRes = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/health`, { timeout: 5000 });
+        console.log('API connectivity test passed');
+      } catch (testErr) {
+        console.warn('API connectivity test failed:', testErr.message);
+      }
+      
+      const res = await axios.get(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 10000 // 10 second timeout
+      });
+      
+      console.log('API Response:', res);
+      let historyData = res.data.history;
+      console.log('Raw history data:', historyData);
+      
+      setHistory(historyData || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch patient history.');
+      console.error('Error fetching patient history:', err);
+      console.error('Error response:', err.response);
+      console.error('Error status:', err.response?.status);
+      console.error('Error data:', err.response?.data);
+      
+      let errorMessage = 'Failed to fetch patient history.';
+      if (err.response?.status === 401) {
+        errorMessage = 'Unauthorized access. Please log in again.';
+      } else if (err.response?.status === 403) {
+        errorMessage = 'Access forbidden. You may not have permission to view this patient\'s history.';
+      } else if (err.response?.status === 404) {
+        errorMessage = 'Patient history not found.';
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (!navigator.onLine) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

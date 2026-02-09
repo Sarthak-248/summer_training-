@@ -71,8 +71,32 @@ const BookAppointment = () => {
       const res = await axios.get(`/api/doctors/${selectedDoctor._id}/slots`, {
         params: { date: selectedDate }
       });
+      console.log('bookedSlots from backend:', res.data.booked);
+      const normalizedBookedSlots = (res.data.booked || []).map(slot => {
+        let timeString = '';
+        if (typeof slot === 'string') {
+          timeString = slot;
+        } else if (slot && typeof slot === 'object' && slot.start) {
+          timeString = slot.start;
+        } else {
+          return ''; // invalid, skip
+        }
+        // Now normalize the timeString
+        if (timeString.includes('T')) {
+          // ISO format like "2023-10-01T09:00:00.000Z", extract HH:MM
+          const timePart = timeString.split('T')[1];
+          if (timePart) {
+            return timePart.split(':').slice(0, 2).join(':');
+          }
+        } else if (timeString.split(':').length >= 2) {
+          // HH:MM:SS or HH:MM, take HH:MM
+          return timeString.split(':').slice(0, 2).join(':');
+        }
+        return timeString; // fallback
+      }).filter(Boolean); // remove empty strings
+      console.log('normalizedBookedSlots:', normalizedBookedSlots);
       setDoctorSlots(res.data.slots || []);
-      setBookedSlots(res.data.booked || []);
+      setBookedSlots(normalizedBookedSlots);
       setSelectedSlot(""); // Reset slot selection on date change
     };
     fetchSlots();
@@ -290,7 +314,7 @@ const BookAppointment = () => {
 
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : 'https://api.dicebear.com/7.x/adventurer/svg?seed=doctor'}
+                    src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}
                     alt={doc.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
@@ -364,7 +388,7 @@ const BookAppointment = () => {
                   <div className="flex items-start gap-4 mb-4">
                     <div className="relative">
                       <img
-                        src={selectedDoctor.imageUrl ? (selectedDoctor.imageUrl.startsWith('http') ? selectedDoctor.imageUrl : `${BACKEND_URL}${selectedDoctor.imageUrl}`) : "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"}
+                        src={selectedDoctor.imageUrl ? (selectedDoctor.imageUrl.startsWith('http') ? selectedDoctor.imageUrl : `${BACKEND_URL}${selectedDoctor.imageUrl}`) : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"}
                         alt={selectedDoctor.name}
                         className="w-20 h-20 rounded-full border-2 border-white/20 object-cover"
                       />
@@ -443,7 +467,9 @@ const BookAppointment = () => {
                         .slice()
                         .sort((a, b) => a.start.localeCompare(b.start))
                         .map(slot => {
+                          console.log('Checking slot:', slot.start, 'against bookedSlots:', bookedSlots);
                           const isBooked = bookedSlots.includes(slot.start);
+                          console.log('isBooked for', slot.start, ':', isBooked);
                           
                           // Check if slot is in the past (only for today)
                           const isPastTime = (() => {

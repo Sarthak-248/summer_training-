@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import moment from "moment";
+import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 import {
   FaUserAlt,
   FaPhoneAlt,
@@ -33,7 +34,7 @@ const ScheduledAppointment = () => {
       if (!token) return;
 
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/scheduled-appointments`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/appointments`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -86,8 +87,9 @@ const ScheduledAppointment = () => {
           appt._id === id ? { ...appt, status: "Confirmed" } : appt
         )
       );
+      showSuccessToast("Success", "Appointment accepted successfully!");
     } catch {
-      alert("Failed to accept appointment");
+      showErrorToast("Failed to accept appointment");
     }
     setLoading(id, false);
   };
@@ -266,19 +268,7 @@ const ScheduledAppointment = () => {
          </div>
       )}
 
-      {/* Update Time Slot Button */}
-      <button 
-        onClick={() => {
-          if (!doctorProfileUpdated) {
-            showToast("Please update your profile to set available time slots.", "warning");
-          } else {
-            handleUpdateTimeSlot();
-          }
-        }}
-        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-blue-500/20 transition-all active:transform active:scale-95"
-      >
-        Update Time Slot
-      </button>
+     
 
     </div>
   );

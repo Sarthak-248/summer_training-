@@ -74,7 +74,7 @@ const doctorSchema = new mongoose.Schema({
   imageUrl: {
     type: String,
     required: true,
-    default: "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"
+    default: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
   },
   userRef: {
     type: mongoose.Schema.Types.ObjectId,
@@ -94,6 +94,7 @@ const doctorSchema = new mongoose.Schema({
   services: { type: String, trim: true },
   appointments: [appointmentSchema], // Appointments now include patientRef
   availability: [timeSlotSchema],    // Availability field
+  availableTimeSlots: [timeSlotSchema], // New field for available time slots
   createdAt: {
     type: Date,
     default: Date.now,

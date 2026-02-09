@@ -21,6 +21,7 @@ const FavoritesPage = () => {
   const [doctorSlots, setDoctorSlots] = useState([]);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState("");
+  const [bookingSuccess, setBookingSuccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,12 +32,18 @@ const FavoritesPage = () => {
   useEffect(() => {
     if (!selectedDoctor) return;
     const fetchSlots = async () => {
-      const res = await axios.get(`/api/doctors/${selectedDoctor._id}/slots`, {
-        params: { date: selectedDate }
-      });
-      setDoctorSlots(res.data.slots || []);
-      setBookedSlots(res.data.booked || []);
-      setSelectedSlot(""); // Reset slot selection on date change
+      try {
+        const res = await axios.get(`${BACKEND_URL}/api/doctors/${selectedDoctor._id}/slots`, {
+          params: { date: selectedDate }
+        });
+        setDoctorSlots(res.data.slots || []);
+        setBookedSlots(res.data.booked || []);
+        setSelectedSlot(""); // Reset slot selection on date change
+      } catch (error) {
+        console.error('Failed to fetch slots:', error);
+        setDoctorSlots([]);
+        setBookedSlots([]);
+      }
     };
     fetchSlots();
   }, [selectedDoctor, selectedDate]);
@@ -97,9 +104,16 @@ const FavoritesPage = () => {
           </span>
       );
 
-      setSelectedDoctor(null);
+      // Refetch slots to update booked status
+      const res = await axios.get(`${BACKEND_URL}/api/doctors/${selectedDoctor._id}/slots`, {
+        params: { date: selectedDate }
+      });
+      setDoctorSlots(res.data.slots || []);
+      setBookedSlots(res.data.booked || []);
+      setSelectedSlot(""); // Reset slot selection
+
+      setBookingSuccess(true);
       setForm({ patientName: '', patientContact: '', appointmentTime: '', reason: '' });
-      navigate('/patient/appointments/upcoming'); // Redirect to appointments page after booking
     } catch (err) {
       console.error('Booking failed:', err);
       showErrorToast("Booking failed. Please try again.");
@@ -140,7 +154,7 @@ const FavoritesPage = () => {
               <div className="relative bg-[#0a0a0a] rounded-2xl h-full w-full overflow-hidden">
               <div className="relative overflow-hidden">
                 <img
-                  src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : 'https://api.dicebear.com/7.x/adventurer/svg?seed=doctor'}
+                  src={doc.imageUrl ? (doc.imageUrl.startsWith('http') ? doc.imageUrl : `${BACKEND_URL}${doc.imageUrl}`) : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}
                   alt={doc.name}
                   className="h-56 w-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
@@ -185,7 +199,7 @@ const FavoritesPage = () => {
           <div className="relative bg-gradient-to-br from-white via-blue-50 to-cyan-50 rounded-3xl shadow-2xl w-full max-w-4xl p-8 animate-fade-in border-2 border-blue-200 max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button
-              onClick={() => setSelectedDoctor(null)}
+              onClick={() => { setSelectedDoctor(null); setBookingSuccess(false); navigate('/patient/appointments/upcoming'); }}
               className="absolute top-4 right-4 bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white w-10 h-10 rounded-full flex items-center justify-center text-2xl font-bold focus:outline-none transition-all shadow-lg"
               aria-label="Close"
             >
@@ -202,13 +216,27 @@ const FavoritesPage = () => {
               <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Book Appointment</h3>
               <p className="text-gray-600 mt-1">Schedule your consultation with Dr. {selectedDoctor.name}</p>
             </div>
-            <div className="flex flex-col md:flex-row gap-8">
+
+            {bookingSuccess ? (
+              <div className="text-center py-8">
+                <div className="text-green-500 text-6xl mb-4">✓</div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Appointment Booked Successfully!</h3>
+                <p className="text-gray-600 mb-6">Your appointment with Dr. {selectedDoctor.name} is confirmed.</p>
+                <button
+                  onClick={() => { setSelectedDoctor(null); setBookingSuccess(false); navigate('/patient/appointments/upcoming'); }}
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold"
+                >
+                  View My Appointments
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col md:flex-row gap-8">
               {/* Left Column: Doctor Info, Date, Slots */}
               <div className="flex-1 min-w-[220px]">
                 {/* Doctor Info */}
                 <div className="flex items-center gap-4 mb-6">
                   <img
-                    src={selectedDoctor.imageUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=doctor"}
+                    src={selectedDoctor.imageUrl ? (selectedDoctor.imageUrl.startsWith('http') ? selectedDoctor.imageUrl : `${BACKEND_URL}${selectedDoctor.imageUrl}`) : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}
                     alt={selectedDoctor.name}
                     className="w-16 h-16 rounded-full border-4 border-purple-200 shadow-lg object-cover"
                   />
@@ -262,17 +290,18 @@ const FavoritesPage = () => {
                       .slice()
                       .sort((a, b) => a.start.localeCompare(b.start))
                       .map(slot => {
-                        const isBooked = bookedSlots.includes(slot.start);
+                        const normalizedStart = slot.start.split(':').map(s => s.padStart(2, '0')).join(':');
+                        const isBooked = bookedSlots.some(b => b.start === normalizedStart);
                         return (
                           <button
                             key={slot.start}
                             type="button"
                             disabled={isBooked}
-                            onClick={() => setSelectedSlot(slot.start)}
+                            onClick={() => setSelectedSlot(normalizedStart)}
                             className={`px-4 py-2 rounded-lg border font-semibold shadow-sm transition
                               ${isBooked
                                 ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
-                                : selectedSlot === slot.start
+                                : selectedSlot === normalizedStart
                                   ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-purple-700 scale-105"
                                   : "bg-white text-purple-700 border-purple-300 hover:bg-purple-100"}
                             `}
@@ -358,6 +387,7 @@ const FavoritesPage = () => {
                 </form>
               </div>
             </div>
+            )}
           </div>
         </div>
       )}

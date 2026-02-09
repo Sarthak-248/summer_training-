@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
+import { showSuccessToast } from '../utils/toastUtils';
 import AppLogo from '../assets/logo.svg';
 
 const socket = window.io ? window.io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
@@ -111,13 +112,13 @@ const DoctorNavbar = () => {
     }
     
     // Register doctor socket connection
-    const doctorId = localStorage.getItem('doctorId');
-    console.log('[SOCKET] Registering doctor socket with ID:', doctorId);
-    
     const registerDoctor = () => {
-       if (doctorId) {
-         socket.emit('registerDoctor', doctorId);
-         console.log('[SOCKET] Emitted registerDoctor for:', doctorId);
+       const currentDoctorId = localStorage.getItem('doctorId');
+       if (currentDoctorId) {
+         socket.emit('registerDoctor', currentDoctorId);
+         console.log('[SOCKET] Emitted registerDoctor for:', currentDoctorId);
+       } else {
+         console.log('[SOCKET] No doctorId found, skipping registration');
        }
     };
 
@@ -134,48 +135,36 @@ const DoctorNavbar = () => {
       console.log('[SOCKET] Disconnected from server');
     });
 
+    // Listen for storage changes to re-register when doctorId is set
+    const handleStorageChange = (e) => {
+      if (e.key === 'doctorId' && e.newValue) {
+        console.log('[SOCKET] doctorId changed, re-registering:', e.newValue);
+        socket.emit('registerDoctor', e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also check periodically for doctorId (for same-tab changes)
+    let lastDoctorId = null;
+    const checkDoctorId = () => {
+      const currentDoctorId = localStorage.getItem('doctorId');
+      if (currentDoctorId && currentDoctorId !== lastDoctorId) {
+        console.log('[SOCKET] doctorId found on check, registering:', currentDoctorId);
+        socket.emit('registerDoctor', currentDoctorId);
+        lastDoctorId = currentDoctorId;
+      }
+    };
+
+    const intervalId = setInterval(checkDoctorId, 2000); // Check every 2 seconds
+
     // Listen for new appointments
     socket.on('newAppointment', (data) => {
       console.log('[SOCKET] Received newAppointment event:', data);
       
       try {
-          // Show attractive toast notification
-          toast.custom((t) => (
-            <div
-              className={`${
-                t.visible ? 'animate-enter' : 'animate-leave'
-              } max-w-md w-full bg-slate-900 border border-white/10 shadow-2xl rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5 z-[9999]`}
-            >
-              <div className="flex-1 w-0 p-4">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 pt-0.5">
-                   <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold animate-pulse">
-                      {data.patientName ? data.patientName.charAt(0).toUpperCase() : '!'}
-                   </div>
-                  </div>
-                  <div className="ml-3 flex-1">
-                    <p className="text-sm font-bold text-white">
-                      New Appointment Request
-                    </p>
-                    <p className="mt-1 text-sm text-slate-300">
-                      <span className="font-semibold text-pink-400">{data.patientName}</span> has booked an appointment.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex border-l border-white/10">
-                <button
-                  onClick={() => toast.dismiss(t.id)}
-                  className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-pink-500 hover:text-pink-400 focus:outline-none hover:bg-white/5 transition-colors"
-                >
-                  View
-                </button>
-              </div>
-            </div>
-          ), { 
-              duration: 8000,
-              position: 'top-right',
-          });
+          // Show success toast for new appointment
+          showSuccessToast("New Appointment Request", `${data.patientName} has booked an appointment.`);
           console.log('[SOCKET] Toast trigger attempted');
       } catch (err) {
           console.error('[SOCKET] Toast failed:', err);
@@ -209,6 +198,16 @@ const DoctorNavbar = () => {
 
     // Listen for payment notifications
     socket.on('paymentReceived', (data) => {
+      console.log('[SOCKET] Received paymentReceived event:', data);
+      
+      try {
+          // Show success toast for payment received
+          showSuccessToast("Payment Received", `₹${data.amount} received from ${data.patientName}.`);
+          console.log('[SOCKET] Payment toast trigger attempted');
+      } catch (err) {
+          console.error('[SOCKET] Payment toast failed:', err);
+      }
+
       const newNotification = {
         id: Date.now(),
         type: 'payment',
@@ -239,6 +238,8 @@ const DoctorNavbar = () => {
       socket.off('paymentReceived');
       socket.off('connect');
       socket.off('disconnect');
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
     };
   }, []);
 

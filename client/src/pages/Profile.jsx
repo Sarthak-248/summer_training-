@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from 'react-hot-toast';
+import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 import Header1 from './header1';
 
 const fields = [
@@ -57,7 +58,7 @@ const Profile = () => {
              setPhotoPreview(defaultAvatar);
         }
       } catch (err) {
-        toast.error("Failed to fetch profile.");
+        showErrorToast("Failed to fetch profile.");
       } finally {
         setLoading(false);
       }
@@ -76,6 +77,7 @@ const Profile = () => {
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
+    console.log("Photo file selected:", file);
     setPhotoFile(file);
     if (file) {
       const reader = new FileReader();
@@ -91,7 +93,17 @@ const Profile = () => {
       const token = localStorage.getItem("token");
       const data = new FormData();
       fields.forEach((field) => data.append(field.key, form[field.key] || ""));
-      if (photoFile) data.append("photo", photoFile);
+      if (photoFile) {
+        console.log("Appending photo file:", photoFile);
+        data.append("photo", photoFile);
+      } else {
+        console.log("No photo file to append");
+      }
+
+      console.log("FormData contents:");
+      for (let [key, value] of data.entries()) {
+        console.log(key, value);
+      }
 
       const res = await axios.put("/api/patient/profile", data, {
         headers: { Authorization: `Bearer ${token}` },
@@ -99,11 +111,11 @@ const Profile = () => {
       setPatient(res.data);
       setForm(res.data);
       setEditMode(false);
-      toast.success("Profile updated successfully!");
+      showSuccessToast("Success", "Profile updated successfully!");
       setPhotoFile(null);
       setPhotoPreview(res.data.photo || defaultAvatar);
     } catch (err) {
-      toast.error("Failed to update profile.");
+      showErrorToast("Failed to update profile.");
     }
   };
 

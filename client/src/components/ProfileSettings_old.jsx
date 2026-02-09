@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from 'react-hot-toast';
+import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 
 const daysOrder = [
   "Monday",
@@ -42,7 +43,7 @@ const ProfileSettings = () => {
         setProfileComplete(isComplete);
         setAllSlots(data.availability || []);
       } catch (err) {
-        toast.error("Failed to load profile");
+        showErrorToast("Failed to load profile");
       }
     };
     fetchDoctorProfile();
@@ -75,7 +76,7 @@ const ProfileSettings = () => {
         body: JSON.stringify({ day, start, end }),
       });
       const respData = await response.json();
-      toast.success(respData.message || "Slot deleted successfully");
+      showSuccessToast("Success", respData.message || "Slot deleted successfully");
     // Refresh all slots
     const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/my-profile`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -83,7 +84,7 @@ const ProfileSettings = () => {
     const data = await res.json();
     setAllSlots(data.availability || []);
   } catch (error) {
-    toast.error("Failed to delete slot. Please try again.");
+    showErrorToast("Failed to delete slot. Please try again.");
   }
   };
 
@@ -136,9 +137,9 @@ const ProfileSettings = () => {
       });
 
       const respData = await response.json();
-      toast.success(respData.message || "Slots saved successfully");
+      showSuccessToast("Success", respData.message || "Slots saved successfully");
     } catch (error) {
-      toast.error("Failed to delete slot. Please try again.");
+      showErrorToast("Failed to delete slot. Please try again.");
     }
   };
 

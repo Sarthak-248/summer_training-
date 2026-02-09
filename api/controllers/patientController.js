@@ -4,8 +4,11 @@ import Patient from "../models/Patient.js"; // Assuming you have a Patient model
 import User from '../models/User.js';
 import path from "path";
 import { exec } from "child_process";
+import { promisify } from "util";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import fs from "fs";
+import axios from "axios";
 // controllers/appointmentController.js
 // POST /api/patient/book-appointment/:doctorId
 const __filename = fileURLToPath(import.meta.url);
@@ -28,6 +31,18 @@ export const bookAppointment = async (req, res) => {
     const start = new Date(appointmentTime);
     const end = appointmentEndTime ? new Date(appointmentEndTime) : new Date(start.getTime() + 60 * 60 * 1000);
 
+    // Check for time conflicts with existing appointments
+    const conflictingAppointment = doctor.appointments.find(appt => 
+      appt.status !== 'Cancelled' && 
+      ((appt.appointmentTime <= start && appt.appointmentEndTime > start) || 
+       (appt.appointmentTime < end && appt.appointmentEndTime >= end) ||
+       (appt.appointmentTime >= start && appt.appointmentEndTime <= end))
+    );
+
+    if (conflictingAppointment) {
+      return res.status(400).json({ message: 'Time slot already booked. Please choose a different time.' });
+    }
+
     doctor.appointments.push({
       patientName,
       patientContact,
@@ -41,28 +56,13 @@ export const bookAppointment = async (req, res) => {
 
     // --- Socket.IO Notification to Doctor ---
     const io = req.app.get("io");
-    const doctorSockets = req.app.get("doctorSockets");
     
-    // Ensure doctorId is a string for lookup
-    const targetDoctorId = String(doctorId);
-    const doctorSocketIds = doctorSockets[targetDoctorId];
-    
-    console.log(`[NOTIFY DEBUG] Booking for Doctor: ${targetDoctorId}`);
-    console.log(`[NOTIFY DEBUG] Available Doctor Sockets Map Keys: ${Object.keys(doctorSockets)}`);
-    console.log(`[NOTIFY DEBUG] Found Socket IDs: ${doctorSocketIds}`);
-
-    if (doctorSocketIds && doctorSocketIds.length > 0) {
-      doctorSocketIds.forEach(socketId => {
-        io.to(socketId).emit("newAppointment", {
-          patientName,
-          appointmentTime: new Date(appointmentTime),
-          reason,
-        });
-      });
-      console.log(`[NOTIFY] Emitted newAppointment to doctor ${targetDoctorId} on sockets: ${doctorSocketIds}`);
-    } else {
-      console.log(`[NOTIFY] FAILED: No active socket found for doctor ${targetDoctorId}`);
-    }
+    console.log(`[NOTIFY] Emitting newAppointment to doctor: ${doctorId}`);
+    io.to(doctorId).emit("newAppointment", {
+      patientName,
+      appointmentTime: new Date(appointmentTime),
+      reason,
+    });
     // --- End Notification ---
 
     res.status(201).json({ message: 'Appointment booked successfully' });
@@ -86,7 +86,7 @@ export const getMyAppointments = async (req, res) => {
     // Step 1: Find all doctors where this user has appointments
     const doctors = await Doctor.find({
       'appointments.patientRef': patientId,
-    }).select('name specialty appointments');
+    }).select('name specialty consultationFees appointments');
 
     const patientAppointments = [];
 
@@ -108,7 +108,7 @@ export const getMyAppointments = async (req, res) => {
             createdAt: appt.createdAt,
             // Payment information
             paymentStatus: appt.paymentStatus || 'Pending',
-            amount: appt.amount || doctor.consultationFees,
+            amount: appt.amount || doctor.consultationFees || 500,
             paymentId: appt.paymentId || '',
             orderId: appt.orderId || '',
           });
@@ -371,9 +371,14 @@ export const updatePatientProfile = async (req, res) => {
 
     // If photo uploaded, set photo field
     if (req.file && req.file.path) {
-      // Convert local path to URL
-      const relativePath = path.relative(path.join(__dirname, '..'), req.file.path).replace(/\\/g, '/');
-      updates.photo = `/${relativePath}`;
+      console.log("[DEBUG] Photo upload - file path:", req.file.path);
+      // Check if it's a Cloudinary URL or local path
+      updates.photo = req.file.path.startsWith("http")
+        ? req.file.path
+        : `/${path.relative(path.join(__dirname, '..'), req.file.path).replace(/\\/g, '/')}`;
+      console.log("[DEBUG] Photo URL set to:", updates.photo);
+    } else {
+      console.log("[DEBUG] No photo file uploaded");
     }
 
     const patient = await Patient.findByIdAndUpdate(
@@ -401,7 +406,7 @@ export const updatePatientProfile = async (req, res) => {
 
 
 
-export const analyzeReport = (req, res) => {
+export const analyzeReport = async (req, res) => {
   console.log("📥 Analyze report triggered");
   console.log("📄 Uploaded file info:", req.file);
 
@@ -409,44 +414,62 @@ export const analyzeReport = (req, res) => {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  const filePath = path.resolve(req.file.path);
-  const scriptPath = path.resolve(__dirname, "../ml/model_predictor.py");
+  const cloudinaryUrl = req.file.path; // This is the Cloudinary URL
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const tempDir = path.resolve(__dirname, "../uploads/temp");
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+  const tempFilePath = path.join(tempDir, `temp_${Date.now()}_${req.file.originalname}`);
 
-  // Use python3 in production (Docker), fallback to venv for local dev
-  const pythonCmd = process.env.NODE_ENV === 'production' ? 'python3' : `"${path.resolve(__dirname, "../../.venv/Scripts/python.exe")}"`;
-  
-  console.log("📂 Resolved file path:", filePath);
-  console.log("📜 Script path:", scriptPath);
-  console.log("🐍 Python command:", pythonCmd);
+  const execAsync = promisify(exec);
 
-  // Use the python interpreter
-  const command = `${pythonCmd} "${scriptPath}" "${filePath}"`;
+  try {
+    // Download the file from Cloudinary URL
+    const response = await axios.get(cloudinaryUrl, { responseType: 'stream' });
+    const writer = fs.createWriteStream(tempFilePath);
+    response.data.pipe(writer);
 
-  exec(command, (err, stdout, stderr) => {
+    await new Promise((resolve, reject) => {
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+    });
+
+    console.log("📂 Downloaded to temp file:", tempFilePath);
+
+    const scriptPath = path.resolve(__dirname, "../ml/model_predictor.py");
+
+    // Use python3 in production (Docker), fallback to venv for local dev
+    const pythonCmd = process.env.NODE_ENV === 'production' ? 'python3' : `"${path.resolve(__dirname, "../../.venv/Scripts/python.exe")}"`;
+    
+    console.log("📜 Script path:", scriptPath);
+    console.log("🐍 Python command:", pythonCmd);
+
+    // Use the python interpreter
+    const command = `${pythonCmd} "${scriptPath}" "${tempFilePath}"`;
+
+    const { stdout, stderr } = await execAsync(command);
+
+    // Clean up temp file
+    fs.unlink(tempFilePath, (unlinkErr) => {
+      if (unlinkErr) console.error("Error deleting temp file:", unlinkErr);
+    });
+
     if (stderr) {
       console.error("⚠️ Python stderr:", stderr);
     }
 
     console.log("🐍 Raw Python output:", stdout);
 
-    // Attempt to parse the output even if there's an error code,
-    // as the script might describe the error in JSON.
+    // Attempt to parse the output
     let result;
     try {
-      // Clean up stdout: sometimes libraries print warnings to stdout. 
-      // We take the last non-empty line.
       const lines = stdout.trim().split('\n');
       const lastLine = lines[lines.length - 1];
       result = JSON.parse(lastLine);
     } catch (parseError) {
       console.error("❌ JSON parse error:", parseError.message);
-      // If we can't parse JSON and there was an error, return generic error
-      if (err) {
-        return res.status(500).json({
-           error: "Failed to analyze report",
-           details: stderr || err.message,
-        });
-      }
       return res.status(500).json({
         error: "Invalid response from Python script",
         rawOutput: stdout,
@@ -454,21 +477,30 @@ export const analyzeReport = (req, res) => {
     }
 
     if (result.error) {
-       console.error("❌ Script returned error:", result.error);
-       
-       // improved status codes for specific errors
-       if (result.error.includes("Missing values")) {
-         return res.status(422).json(result); // Unprocessable Entity
-       }
-       if (result.error.includes("format") || result.error.includes("supported")) {
-         return res.status(400).json(result); // Bad Request
-       }
-       
-       return res.status(500).json(result);
+      console.error("❌ Script returned error:", result.error);
+      
+      if (result.error.includes("Missing values")) {
+        return res.status(422).json(result);
+      }
+      if (result.error.includes("format") || result.error.includes("supported")) {
+        return res.status(400).json(result);
+      }
+      
+      return res.status(500).json(result);
     }
 
     console.log("✅ Parsed result:", result);
     return res.json(result);
-  });
+
+  } catch (error) {
+    console.error("❌ Error in analyzeReport:", error);
+    // Clean up temp file if it exists
+    if (fs.existsSync(tempFilePath)) {
+      fs.unlink(tempFilePath, (unlinkErr) => {
+        if (unlinkErr) console.error("Error deleting temp file:", unlinkErr);
+      });
+    }
+    return res.status(500).json({ error: "Failed to analyze report", details: error.message });
+  }
 };
 

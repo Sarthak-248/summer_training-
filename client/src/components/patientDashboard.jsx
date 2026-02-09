@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
+import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 
  // ✅ Required to use navigate()
 
@@ -59,14 +60,14 @@ const saveMedicalHistory = async () => {
       }
     );
     navigate("/patient/home");
-    toast.success("Medical history saved! Thank you.");
+    showSuccessToast("Success", "Medical history saved! Thank you.");
     setCurrentQIndex(0);
     setAnswers({});
-   
+
 
   } catch (err) {
     console.error("Error saving medical history:", err);
-    toast.error("An error occurred while saving your data.");
+    showErrorToast("An error occurred while saving your data.");
   }
 };
 
