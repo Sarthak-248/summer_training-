@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import { useNavigate, Link } from "react-router-dom";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 import AppLogo from '../assets/logo.svg';
@@ -16,7 +16,7 @@ const handleSignup = async (e) => {
     setError("");
 
     try {
-        await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/signup`, {
+        await api.post(`/api/auth/signup`, {
             name,
             email,
             password,

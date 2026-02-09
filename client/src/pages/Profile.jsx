@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from 'react-hot-toast';
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
@@ -34,7 +34,7 @@ const Profile = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const userRes = await axios.get("/api/auth/profile", {
+        const userRes = await api.get("/api/auth/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -42,7 +42,7 @@ const Profile = () => {
 
         // Fetch patient data distinctively
         if (userRes.data.role === "patient") {
-          const patientRes = await axios.get("/api/patient/profile", {
+          const patientRes = await api.get("/api/patient/profile", {
             headers: { Authorization: `Bearer ${token}` },
           });
           setPatient(patientRes.data);
@@ -105,7 +105,7 @@ const Profile = () => {
         console.log(key, value);
       }
 
-      const res = await axios.put("/api/patient/profile", data, {
+      const res = await api.put("/api/patient/profile", data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPatient(res.data);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
@@ -50,7 +50,7 @@ const PatientDashboard = () => {
 const saveMedicalHistory = async () => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/patient/post-history`,
+    const response = await api.post(`/api/patient/post-history`,
       { answers },
       {
         headers: {

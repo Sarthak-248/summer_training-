@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';  // Make sure to import axios
+import api from '../utils/api';
 import notsuccess from '/src/assets/notifysuccess.png';  // Replace with your success notification icon path
 import noterror from '/src/assets/notifyerror.png';  // Replace with your error notification icon path
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
-
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const FavoritesPage = () => {
   const [favorites, setFavorites] = useState([]);
@@ -33,7 +31,7 @@ const FavoritesPage = () => {
     if (!selectedDoctor) return;
     const fetchSlots = async () => {
       try {
-        const res = await axios.get(`${BACKEND_URL}/api/doctors/${selectedDoctor._id}/slots`, {
+        const res = await api.get(`/api/doctors/${selectedDoctor._id}/slots`, {
           params: { date: selectedDate }
         });
         setDoctorSlots(res.data.slots || []);
@@ -88,7 +86,7 @@ const FavoritesPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      await api.post(
         `/api/appointments/book-appointment/${selectedDoctor._id}`,
         { ...form, appointmentTime },
         {
@@ -105,7 +103,7 @@ const FavoritesPage = () => {
       );
 
       // Refetch slots to update booked status
-      const res = await axios.get(`${BACKEND_URL}/api/doctors/${selectedDoctor._id}/slots`, {
+      const res = await api.get(`/api/doctors/${selectedDoctor._id}/slots`, {
         params: { date: selectedDate }
       });
       setDoctorSlots(res.data.slots || []);

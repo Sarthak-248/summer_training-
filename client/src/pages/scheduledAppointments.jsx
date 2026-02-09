@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import moment from "moment";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 import {
@@ -33,8 +33,8 @@ const ScheduledAppointment = () => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/appointments`,
+      const res = await api.get(
+        `/api/doctors/appointments`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -77,8 +77,8 @@ const ScheduledAppointment = () => {
     setLoading(id, true);
     try {
       const token = localStorage.getItem("token");
-      await axios.patch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/appointments/${id}/status`,
+      await api.patch(
+        `/api/doctors/appointments/${id}/status`,
         { status: "Confirmed" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -109,8 +109,8 @@ const ScheduledAppointment = () => {
       setLoading(id, true);
       try {
         const token = localStorage.getItem("token");
-        await axios.patch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/doctors/appointments/${id}/status`,
+        await api.patch(
+          `/api/doctors/appointments/${id}/status`,
           { status: "Cancelled", reason: cancelReason },
           { headers: { Authorization: `Bearer ${token}` } }
         );

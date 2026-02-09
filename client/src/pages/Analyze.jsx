@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { showErrorToast } from '../utils/toastUtils';
+import api from "../utils/api";
 
 export default function Analyze() {
   const [result, setResult] = useState(null);
@@ -46,23 +47,14 @@ export default function Analyze() {
     const formData = new FormData(e.target);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/patient/analyze-report`, {
-        method: "POST",
-        body: formData,
+      const res = await api.post(`/api/patient/analyze-report`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
-      if (!res.ok) {
-        throw new Error(`Server error: ${res.statusText}`);
-      }
-
-      const data = await res.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
       // Backend returns "prediction", fallback to "severity" if legacy
-      setResult(data.prediction || data.severity);
+      setResult(res.data.prediction || res.data.severity);
     } catch (err) {
       setError(err.message);
     } finally {

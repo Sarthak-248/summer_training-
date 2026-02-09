@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import { useNavigate, Link } from "react-router-dom";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 import AppLogo from '../assets/logo.svg';
@@ -17,7 +17,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/login`, { email, password,});
+            const res = await api.post(`/api/auth/login`, { email, password });
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("role", res.data.user.role);
             if (res.data.user.role === "doctor" && res.data.user.doctorId) {

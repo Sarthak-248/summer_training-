@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
+import api from '../utils/api';
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ const ProfileSettings = () => {
         return;
       }
 
-      const res = await fetch(`/api/doctors/profile?t=${Date.now()}`, {
+      const res = await api.get(`/api/doctors/profile?t=${Date.now()}`, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Cache-Control': 'no-cache',
@@ -109,7 +110,7 @@ const ProfileSettings = () => {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const res = await fetch(`/api/doctors/slots`, {
+        const res = await api.get(`/api/doctors/slots`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -199,13 +200,12 @@ const ProfileSettings = () => {
       }))
     );
 
-    const res = await fetch(`/api/doctors/save-slots`, {
-      method: "POST",
+    const res = await api.post(`/api/doctors/save-slots`, {
+      data: { slots: flatSlots },
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ slots: flatSlots }),
     });
 
     if (!res.ok) {
@@ -227,13 +227,12 @@ const ProfileSettings = () => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch(`/api/doctors/slots`, {
-        method: "DELETE",
+      const res = await api.delete(`/api/doctors/slots`, {
+        data: { day, start, end },
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ day, start, end }),
       });
 
       if (!res.ok) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import PaymentComponent from '../components/PaymentComponent';
 
@@ -19,7 +19,7 @@ const UpcomingAppointments = () => {
   const fetchAppointments = async () => {
     setLoading(true); // Show loading state
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/appointments/getmyappointments`, {
+      const res = await api.get(`/api/appointments/getmyappointments`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

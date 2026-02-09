@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FaHeart, FaRegHeart } from 'react-icons/fa'; // Import React Icons
-import axios from 'axios';
+import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import notsuccess from '../assets/notifysuccess.png';
 import noterror from '../assets/notifyerror.png';
 import { toast } from 'react-hot-toast'; // Import toast
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 //import DoctorFlipCard from '../components/DoctorFlipCard';
-
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const BookAppointment = () => {
   const [doctors, setDoctors] = useState([]);
@@ -52,7 +50,7 @@ const BookAppointment = () => {
     const fetchDoctors = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('/api/doctors/all');
+        const res = await api.get('/api/doctors/all');
         setDoctors(res.data);
       } catch (err) {
         console.error('Error fetching doctors:', err);
@@ -68,7 +66,7 @@ const BookAppointment = () => {
   useEffect(() => {
     if (!selectedDoctor || !selectedDate) return;
     const fetchSlots = async () => {
-      const res = await axios.get(`/api/doctors/${selectedDoctor._id}/slots`, {
+      const res = await api.get(`/api/doctors/${selectedDoctor._id}/slots`, {
         params: { date: selectedDate }
       });
       console.log('bookedSlots from backend:', res.data.booked);
@@ -145,7 +143,7 @@ const BookAppointment = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      await api.post(
         `/api/appointments/book-appointment/${selectedDoctor._id}`,
         { ...form, appointmentTime, appointmentEndTime },
         {

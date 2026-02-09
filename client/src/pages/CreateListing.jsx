@@ -1,6 +1,6 @@
 // src/pages/CreateListing.jsx
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 
 const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
@@ -41,13 +41,13 @@ const CreateListing = () => {
       try {
         const token = localStorage.getItem("token");
         // Get user info (name, email)
-        const userRes = await axios.get("/api/auth/profile", {
+        const userRes = await api.get("/api/auth/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(userRes.data);
 
         // Get doctor profile
-        const docRes = await axios.get("/api/doctors/profile", {
+        const docRes = await api.get("/api/doctors/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setDoctor(docRes.data);
@@ -64,7 +64,7 @@ const CreateListing = () => {
         // If no profile, prefill name/email from user
         try {
           const token = localStorage.getItem("token");
-          const userRes = await axios.get("/api/auth/profile", {
+          const userRes = await api.get("/api/auth/profile", {
             headers: { Authorization: `Bearer ${token}` },
           });
           setUser(userRes.data);
@@ -140,7 +140,7 @@ const CreateListing = () => {
       // If doctor profile exists, update; else, create
       let res;
       try {
-        res = await axios.put("/api/doctors/profile", data, {
+        res = await api.put("/api/doctors/profile", data, {
           headers: { Authorization: `Bearer ${token}` },
         });
         showSuccessToast('Profile Updated', 'Your doctor profile has been updated successfully!');
@@ -150,7 +150,7 @@ const CreateListing = () => {
         }, 1500);
       } catch (err) {
         // If not found, create new
-        res = await axios.post("/api/doctors/create-listing", data, {
+        res = await api.post("/api/doctors/create-listing", data, {
           headers: { Authorization: `Bearer ${token}` },
         });
         showSuccessToast('Profile Created', 'Your doctor listing is now live!');
