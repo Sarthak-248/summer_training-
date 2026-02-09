@@ -29,7 +29,7 @@ const DoctorProfile = ({ doctorId }) => {
     };
 
     const handleSave = () => {
-        api.post("/api/doctors/set-availability", { doctorId, availableSlots })
+        api.post("/api/doctors/slots", { slots: availableSlots })
             .then(() => toast.success("Availability updated successfully"))
             .catch(error => {
                 console.error("Error updating availability:", error);
