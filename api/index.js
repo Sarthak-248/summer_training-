@@ -156,11 +156,8 @@ app.use("/api/video-call", videoCallRoutes);
 // Serve React build - in both development and production
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
+// Catch-all handler: serve React app for any unmatched route
 app.get("*", (req, res) => {
-  // Skip API routes (though they should be handled above)
-  if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path === '/health') {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
   res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
 });
 

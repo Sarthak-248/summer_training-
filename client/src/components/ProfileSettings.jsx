@@ -46,11 +46,8 @@ const ProfileSettings = () => {
 
       if (res.status === 404) {
         setDoctorExists(false);
-        setRetryCount(prev => {
-          const newCount = prev + 1;
-          retryCountRef.current = newCount;
-          return newCount;
-        });
+        setRetryCount(MAX_RETRIES); // Stop retrying on 404 - profile doesn't exist
+        retryCountRef.current = MAX_RETRIES;
         return;
       }
 
