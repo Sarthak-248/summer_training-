@@ -516,14 +516,30 @@ export const analyzeReport = async (req, res) => {
     const command = `${pythonCmd} "${scriptPath}" "${tempFilePath}"`;
     console.log("🚀 Executing command:", command);
 
-    const { stdout, stderr } = await execAsync(command);
+    let stdout, stderr;
+    try {
+      const result = await execAsync(command);
+      stdout = result.stdout;
+      stderr = result.stderr;
+      console.log("🐍 Command executed successfully");
+    } catch (execError) {
+      console.error("❌ Command execution failed:", execError.message);
+      // Clean up temp file
+      fs.unlink(tempFilePath, (unlinkErr) => {
+        if (unlinkErr) console.error("Error deleting temp file:", unlinkErr);
+      });
+      return res.status(500).json({ 
+        error: "ML analysis failed", 
+        details: execError.message,
+        command: command
+      });
+    }
 
     // Clean up temp file
     fs.unlink(tempFilePath, (unlinkErr) => {
       if (unlinkErr) console.error("Error deleting temp file:", unlinkErr);
     });
 
-    console.log("🐍 Command exit code: success");
     if (stderr) {
       console.error("⚠️ Python stderr:", stderr);
     }
@@ -534,12 +550,17 @@ export const analyzeReport = async (req, res) => {
     try {
       const lines = stdout.trim().split('\n');
       const lastLine = lines[lines.length - 1];
+      console.log("🐍 Last line of output:", lastLine);
       result = JSON.parse(lastLine);
     } catch (parseError) {
       console.error("❌ JSON parse error:", parseError.message);
+      console.error("❌ Raw stdout:", stdout);
+      console.error("❌ Raw stderr:", stderr);
       return res.status(500).json({
         error: "Invalid response from Python script",
         rawOutput: stdout,
+        rawError: stderr,
+        parseError: parseError.message
       });
     }
 
