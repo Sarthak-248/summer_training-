@@ -197,8 +197,9 @@ export const getDoctorSlotsForDate = async (req, res) => {
       doctor.availability?.find((d) => d.day === dayName) || null;
 
     // Get booked slots from doctor's appointments
-    const startOfDay = new Date(date + 'T00:00:00Z'); // UTC start of day
-    const endOfDay = new Date(date + 'T23:59:59.999Z'); // UTC end of day
+    // Create date range in local timezone for filtering
+    const startOfDay = new Date(date + 'T00:00:00');
+    const endOfDay = new Date(date + 'T23:59:59.999');
 
     const bookedSlots = doctor.appointments
       .filter(app => 
