@@ -1,5 +1,6 @@
 // src/pages/CreateListing.jsx
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 
@@ -24,6 +25,7 @@ const doctorFields = [
 ];
 
 const CreateListing = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [doctor, setDoctor] = useState(null);
   const [form, setForm] = useState({});
@@ -144,9 +146,10 @@ const CreateListing = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         showSuccessToast('Profile Updated', 'Your doctor profile has been updated successfully!');
-        // Navigate to profile settings after successful update
+        // Navigate to availability settings after successful update
+        localStorage.setItem('doctorId', res.data._id);
         setTimeout(() => {
-          navigate('/doctor/profile-settings');
+          navigate('/doctor/set-availability');
         }, 1500);
       } catch (err) {
         // If not found, create new
@@ -154,9 +157,10 @@ const CreateListing = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         showSuccessToast('Profile Created', 'Your doctor listing is now live!');
-        // Navigate to profile settings after successful creation
+        // Navigate to availability settings after successful creation
+        localStorage.setItem('doctorId', res.data._id);
         setTimeout(() => {
-          navigate('/doctor/profile-settings');
+          navigate('/doctor/set-availability');
         }, 1500);
       }
       setDoctor(res.data);

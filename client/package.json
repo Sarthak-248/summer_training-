@@ -13,6 +13,7 @@
     "@reduxjs/toolkit": "^1.9.5",
     "@tailwindcss/postcss": "^4.1.18",
     "firebase": "^11.8.1",
+    "mern-estate": "file:..",
     "moment": "^2.29.4",
     "razorpay": "^2.9.6",
     "react": "^18.2.0",

@@ -33,26 +33,32 @@ const ProfileSettings = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
+        console.log('[ProfileSettings] No token found');
         setLoading(false);
         return;
       }
 
+      console.log('[ProfileSettings] Checking doctor profile...');
       const res = await api.get(`/api/doctors/profile?t=${Date.now()}`, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         },
       });
 
+      console.log('[ProfileSettings] API response status:', res.status);
+
       if (res.status === 404) {
+        console.log('[ProfileSettings] Doctor profile not found (404)');
         setDoctorExists(false);
         setRetryCount(MAX_RETRIES); // Stop retrying on 404 - profile doesn't exist
         retryCountRef.current = MAX_RETRIES;
         return;
       }
 
-      if (res.ok) {
+      if (res.status >= 200 && res.status < 300) {
+        console.log('[ProfileSettings] Doctor profile found, setting doctorExists to true');
         setDoctorExists(true);
         setRetryCount(0);
         retryCountRef.current = 0; // Reset on success
@@ -70,12 +76,14 @@ const ProfileSettings = () => {
   };
 
   useEffect(() => {
+    console.log('[ProfileSettings] Component mounted, checking doctor...');
     checkDoctor();
   }, []);
 
   // Re-check doctor existence when localStorage changes (e.g., after profile creation)
   useEffect(() => {
     const handleStorageChange = (e) => {
+      console.log('[ProfileSettings] Storage event:', e.key, e.newValue);
       if (e.key === 'doctorId' && e.newValue) {
         console.log('[ProfileSettings] doctorId set, re-checking doctor existence');
         checkDoctor();
@@ -87,7 +95,9 @@ const ProfileSettings = () => {
     // Also check periodically in case of same-tab changes (less frequent)
     const intervalId = setInterval(() => {
       const doctorId = localStorage.getItem('doctorId');
+      console.log('[ProfileSettings] Periodic check - doctorId:', doctorId, 'doctorExists:', doctorExists, 'retryCount:', retryCountRef.current);
       if (doctorId && !doctorExists && retryCountRef.current < MAX_RETRIES) {
+        console.log('[ProfileSettings] Periodic check triggered, calling checkDoctor');
         checkDoctor();
       }
     }, 10000); // Check every 10 seconds instead of 2
@@ -189,25 +199,37 @@ const ProfileSettings = () => {
     setNewSlots([{ day: "", start: "", end: "" }]);
 
     // ===============================
-    // 3️⃣ FLATTEN FOR BACKEND SAVE
+    // 3️⃣ FLATTEN FOR BACKEND SAVE (FILTER OUT EMPTY)
     // ===============================
     const flatSlots = updatedAllSlots.flatMap(d =>
-      d.slots.map(s => ({
-        day: d.day,
-        start: s.start,
-        end: s.end,
-      }))
+      d.slots
+        .filter(s => s.start && s.end) // Only include slots with both start and end times
+        .map(s => ({
+          day: d.day,
+          start: s.start,
+          end: s.end,
+        }))
     );
 
+    console.log('Saving slots (filtered):', flatSlots);
+
+    if (flatSlots.length === 0) {
+      showErrorToast("No valid time slots to save");
+      return;
+    }
+
     const res = await api.post(`/api/doctors/save-slots`, {
-      data: { slots: flatSlots },
+      slots: flatSlots
+    }, {
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
 
-    if (!res.ok) {
+    console.log('Save response status:', res.status);
+    console.log('Save response data:', res.data);
+
+    if (res.status < 200 || res.status >= 300) {
       showErrorToast("Failed to save availability");
       return;
     }

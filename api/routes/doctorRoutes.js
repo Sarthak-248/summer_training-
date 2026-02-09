@@ -1,6 +1,6 @@
 import express from "express";
 import parser from "../middlewares/multerCloudinary.js";
-import { authenticate } from "../middlewares/authMiddleware.js";
+import { authenticate, verifyDoctor } from "../middlewares/authMiddleware.js";
 
 import {
   createDoctorListing,
@@ -28,18 +28,20 @@ const router = express.Router();
 router.post(
   "/create-listing",
   authenticate,
+  verifyDoctor,
   parser.single("image"),
   createDoctorListing
 );
 
 // Get logged-in doctor profile
-router.get("/profile", authenticate, getMyProfile);
-router.get("/my-profile", authenticate, getMyProfile);
+router.get("/profile", authenticate, verifyDoctor, getMyProfile);
+router.get("/my-profile", authenticate, verifyDoctor, getMyProfile);
 
 // Update logged-in doctor profile
 router.put(
   "/profile",
   authenticate,
+  verifyDoctor,
   parser.single("image"),
   updateDoctorProfile
 );
@@ -49,16 +51,16 @@ router.put(
    ===================================================== */
 
 // Set availability (doctor must exist – checked in controller)
-router.post("/slots", authenticate, setAvailability);
+router.post("/slots", authenticate, verifyDoctor, setAvailability);
 
 // Save time slots
-router.post("/save-slots", authenticate, saveTimeSlots);
+router.post("/save-slots", authenticate, verifyDoctor, saveTimeSlots);
 
 // Get logged-in doctor availability
-router.get("/slots", authenticate, getMyAvailability);
+router.get("/slots", authenticate, verifyDoctor, getMyAvailability);
 
 // Delete a specific availability slot
-router.delete("/slots", authenticate, deleteAvailability);
+router.delete("/slots", authenticate, verifyDoctor, deleteAvailability);
 
 // Get slots of a doctor for a specific date (patients)
 router.get("/:doctorId/slots", getDoctorSlotsForDate);
@@ -78,12 +80,13 @@ router.get("/available", getAvailableDoctors);
    ===================================================== */
 
 // Get scheduled appointments for logged-in doctor
-router.get("/appointments", authenticate, getScheduledAppointments);
+router.get("/appointments", authenticate, verifyDoctor, getScheduledAppointments);
 
 // Update appointment status
 router.patch(
   "/appointments/:apptId/status",
   authenticate,
+  verifyDoctor,
   updateAppointmentStatus
 );
 
@@ -91,6 +94,7 @@ router.patch(
 router.get(
   "/patient-history/:patientId",
   authenticate,
+  verifyDoctor,
   getPatientHistory
 );
 

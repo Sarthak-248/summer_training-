@@ -68,6 +68,13 @@ export const createDoctorListing = async (req, res) => {
   try {
     const userId = req.user._id;
 
+    // ✅ Validate that user has doctor role
+    if (req.user.role !== 'doctor') {
+      return res.status(403).json({
+        message: "Access denied. Only users with doctor role can create doctor profiles."
+      });
+    }
+
     // Check if profile exists
     const existing = await Doctor.findOne({ userRef: userId });
     if (existing) {
@@ -336,7 +343,10 @@ export const setAvailability = async (req, res) => {
    ========================================================= */
 export const saveTimeSlots = async (req, res) => {
   try {
+    console.log('saveTimeSlots called with body:', req.body);
+
     const doctor = await Doctor.findOne({ userRef: req.user._id });
+    console.log('Doctor found:', !!doctor);
 
     // ❌ doctor does not exist
     if (!doctor) {
@@ -345,9 +355,20 @@ export const saveTimeSlots = async (req, res) => {
       });
     }
 
+    console.log('Slots received:', req.body.slots);
+
+    if (!req.body.slots || !Array.isArray(req.body.slots)) {
+      return res.status(400).json({ message: "Invalid slots data" });
+    }
+
     // Group slots by day
     const slotMap = {};
     req.body.slots.forEach(slot => {
+      console.log('Processing slot:', slot);
+      if (!slot.day || !slot.start || !slot.end) {
+        console.log('Invalid slot data:', slot);
+        return;
+      }
       if (!slotMap[slot.day]) slotMap[slot.day] = [];
       slotMap[slot.day].push({ start: slot.start, end: slot.end });
     });
@@ -356,6 +377,8 @@ export const saveTimeSlots = async (req, res) => {
       day,
       slots: slotMap[day],
     }));
+
+    console.log('Grouped slots:', groupedSlots);
 
     doctor.availableTimeSlots = groupedSlots;
     await doctor.save();
