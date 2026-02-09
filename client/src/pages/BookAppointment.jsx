@@ -132,9 +132,21 @@ const BookAppointment = () => {
       showErrorToast('Please select a time slot');
       return;
     }
-    // Compose appointmentTime as ISO string
-    const appointmentTime = `${selectedDate}T${selectedSlot.start}:00`;
-    const appointmentEndTime = `${selectedDate}T${selectedSlot.end}:00`;
+    
+    // Create appointment time in local timezone, then convert to UTC for backend
+    const [startHour, startMinute] = selectedSlot.start.split(':').map(Number);
+    const [endHour, endMinute] = selectedSlot.end.split(':').map(Number);
+    
+    // Create Date objects in local timezone
+    const localStartDate = new Date(selectedDate);
+    localStartDate.setHours(startHour, startMinute, 0, 0);
+    
+    const localEndDate = new Date(selectedDate);
+    localEndDate.setHours(endHour, endMinute, 0, 0);
+    
+    // Convert to UTC ISO strings for backend
+    const appointmentTime = localStartDate.toISOString();
+    const appointmentEndTime = localEndDate.toISOString();
 
     // Request notification permission if not granted [DISABLED]
     // if (Notification.permission !== 'granted') {

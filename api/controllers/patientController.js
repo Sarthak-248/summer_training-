@@ -27,20 +27,9 @@ export const bookAppointment = async (req, res) => {
     const doctor = await Doctor.findById(doctorId);
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
 
-    // Parse appointment times correctly - treat as local time zone
-    // Split the datetime string and create date in local timezone
-    const parseLocalDateTime = (dateTimeStr) => {
-      // dateTimeStr format: "2024-02-10T12:38:00"
-      const [datePart, timePart] = dateTimeStr.split('T');
-      const [year, month, day] = datePart.split('-').map(Number);
-      const [hour, minute, second] = timePart.split(':').map(Number);
-
-      // Create date in local timezone (month is 0-indexed in JS Date)
-      return new Date(year, month - 1, day, hour, minute, second || 0);
-    };
-
-    const start = parseLocalDateTime(appointmentTime);
-    const end = appointmentEndTime ? parseLocalDateTime(appointmentEndTime) : new Date(start.getTime() + 60 * 60 * 1000);
+    // Parse appointment times - frontend sends UTC ISO strings
+    const start = new Date(appointmentTime); // ISO string with timezone info
+    const end = appointmentEndTime ? new Date(appointmentEndTime) : new Date(start.getTime() + 60 * 60 * 1000);
 
     // Check for time conflicts with existing appointments
     const conflictingAppointment = doctor.appointments.find(appt => 

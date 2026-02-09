@@ -197,8 +197,8 @@ export const getDoctorSlotsForDate = async (req, res) => {
       doctor.availability?.find((d) => d.day === dayName) || null;
 
     // Get booked slots from doctor's appointments
-    const startOfDay = new Date(date + 'T00:00:00');
-    const endOfDay = new Date(date + 'T23:59:59.999');
+    const startOfDay = new Date(date + 'T00:00:00Z'); // UTC start of day
+    const endOfDay = new Date(date + 'T23:59:59.999Z'); // UTC end of day
 
     const bookedSlots = doctor.appointments
       .filter(app => 
@@ -206,10 +206,16 @@ export const getDoctorSlotsForDate = async (req, res) => {
         app.appointmentTime <= endOfDay && 
         ['Pending', 'Confirmed'].includes(app.status)
       )
-      .map(app => ({
-        start: `${app.appointmentTime.getHours().toString().padStart(2, '0')}:${app.appointmentTime.getMinutes().toString().padStart(2, '0')}`,
-        end: app.appointmentEndTime ? `${app.appointmentEndTime.getHours().toString().padStart(2, '0')}:${app.appointmentEndTime.getMinutes().toString().padStart(2, '0')}` : null
-      }));
+      .map(app => {
+        // Convert UTC time to local time for display
+        const localStartTime = new Date(app.appointmentTime);
+        const localEndTime = app.appointmentEndTime ? new Date(app.appointmentEndTime) : null;
+        
+        return {
+          start: `${localStartTime.getHours().toString().padStart(2, '0')}:${localStartTime.getMinutes().toString().padStart(2, '0')}`,
+          end: localEndTime ? `${localEndTime.getHours().toString().padStart(2, '0')}:${localEndTime.getMinutes().toString().padStart(2, '0')}` : null
+        };
+      });
 
     res.status(200).json({
       slots: availability?.slots || [],
