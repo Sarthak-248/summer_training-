@@ -426,8 +426,17 @@ export const analyzeReport = async (req, res) => {
   const execAsync = promisify(exec);
 
   try {
+    console.log("📥 Starting file download from Cloudinary:", cloudinaryUrl);
+    
     // Download the file from Cloudinary URL
-    const response = await axios.get(cloudinaryUrl, { responseType: 'stream' });
+    const response = await axios.get(cloudinaryUrl, { 
+      responseType: 'stream',
+      timeout: 30000 // 30 second timeout
+    });
+    
+    console.log("📥 Cloudinary response status:", response.status);
+    console.log("📥 Content type:", response.headers['content-type']);
+    
     const writer = fs.createWriteStream(tempFilePath);
     response.data.pipe(writer);
 
@@ -437,6 +446,18 @@ export const analyzeReport = async (req, res) => {
     });
 
     console.log("📂 Downloaded to temp file:", tempFilePath);
+    
+    // Verify file was downloaded
+    if (!fs.existsSync(tempFilePath)) {
+      throw new Error("Downloaded file not found");
+    }
+    
+    const stats = fs.statSync(tempFilePath);
+    console.log("📂 File size:", stats.size, "bytes");
+    
+    if (stats.size === 0) {
+      throw new Error("Downloaded file is empty");
+    }
 
     const scriptPath = path.resolve(__dirname, "../ml/model_predictor.py");
 
@@ -502,10 +523,10 @@ export const analyzeReport = async (req, res) => {
       if (unlinkErr) console.error("Error deleting temp file:", unlinkErr);
     });
 
+    console.log("🐍 Command exit code: success");
     if (stderr) {
       console.error("⚠️ Python stderr:", stderr);
     }
-
     console.log("🐍 Raw Python output:", stdout);
 
     // Attempt to parse the output
