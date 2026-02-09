@@ -34,6 +34,7 @@ router.post(
 
 // Get logged-in doctor profile
 router.get("/profile", authenticate, getMyProfile);
+router.get("/my-profile", authenticate, getMyProfile);
 
 // Update logged-in doctor profile
 router.put(
