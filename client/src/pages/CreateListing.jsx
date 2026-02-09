@@ -144,12 +144,20 @@ const CreateListing = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         showSuccessToast('Profile Updated', 'Your doctor profile has been updated successfully!');
+        // Navigate to profile settings after successful update
+        setTimeout(() => {
+          navigate('/doctor/profile-settings');
+        }, 1500);
       } catch (err) {
         // If not found, create new
         res = await axios.post("/api/doctors/create-listing", data, {
           headers: { Authorization: `Bearer ${token}` },
         });
         showSuccessToast('Profile Created', 'Your doctor listing is now live!');
+        // Navigate to profile settings after successful creation
+        setTimeout(() => {
+          navigate('/doctor/profile-settings');
+        }, 1500);
       }
       setDoctor(res.data);
       setForm({

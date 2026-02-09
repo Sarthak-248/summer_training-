@@ -256,6 +256,12 @@ export const getMyProfile = async (req, res) => {
     if (!doctor) {
       return res.status(404).json({ message: "Doctor profile not found" });
     }
+    // Add cache control headers to prevent caching
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
     res.json(doctor);
   } catch (error) {
     res.status(500).json({ message: "Server error" });

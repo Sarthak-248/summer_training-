@@ -17,33 +17,63 @@ const ProfileSettings = () => {
   /* =====================================================
      CHECK IF DOCTOR EXISTS
      ===================================================== */
+  const checkDoctor = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch(`/api/doctors/profile?t=${Date.now()}`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+      });
+
+      if (res.status === 404) {
+        setDoctorExists(false);
+        return;
+      }
+
+      if (res.ok) {
+        setDoctorExists(true);
+      }
+    } catch (err) {
+      console.error("Doctor check error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const checkDoctor = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+    checkDoctor();
+  }, []);
 
-        const res = await fetch(`/api/doctors/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (res.status === 404) {
-          setDoctorExists(false);
-          return;
-        }
-
-        if (res.ok) {
-          setDoctorExists(true);
-        }
-      } catch (err) {
-        console.error("Doctor check error:", err);
-      } finally {
-        setLoading(false);
+  // Re-check doctor existence when localStorage changes (e.g., after profile creation)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'doctorId' && e.newValue) {
+        console.log('[ProfileSettings] doctorId set, re-checking doctor existence');
+        checkDoctor();
       }
     };
 
-    checkDoctor();
-  }, []);
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also check periodically in case of same-tab changes
+    const intervalId = setInterval(() => {
+      const doctorId = localStorage.getItem('doctorId');
+      if (doctorId && !doctorExists) {
+        console.log('[ProfileSettings] Found doctorId, re-checking existence');
+        checkDoctor();
+      }
+    }, 2000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
+    };
+  }, [doctorExists]);
 
   /* =====================================================
      FETCH AVAILABILITY
@@ -225,12 +255,23 @@ const ProfileSettings = () => {
           <p className="text-pink-200 mb-5">
             Please create your doctor profile before setting availability.
           </p>
-          <button
-            onClick={() => navigate("/doctor/create-listing")}
-            className="bg-gradient-to-r from-pink-500 to-fuchsia-600 px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_30px_rgba(236,72,153,0.5)] transition"
-          >
-            Update Profile
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/doctor/create-listing")}
+              className="bg-gradient-to-r from-pink-500 to-fuchsia-600 px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_30px_rgba(236,72,153,0.5)] transition"
+            >
+              Update Profile
+            </button>
+            <button
+              onClick={() => {
+                setLoading(true);
+                checkDoctor();
+              }}
+              className="bg-gray-600 hover:bg-gray-500 px-6 py-3 rounded-xl font-semibold transition"
+            >
+              Refresh Status
+            </button>
+          </div>
         </div>
       )}
 
