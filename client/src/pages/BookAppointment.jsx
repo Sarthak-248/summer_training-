@@ -75,10 +75,12 @@ const BookAppointment = () => {
         if (typeof slot === 'string') {
           timeString = slot;
         } else if (slot && typeof slot === 'object' && slot.start) {
-          // Handle ISO string format
+          // Handle ISO string format - convert UTC to IST for display
           if (slot.start.includes('T')) {
-            const date = new Date(slot.start);
-            timeString = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            const utcDate = new Date(slot.start);
+            // Convert UTC to IST (add 5 hours 30 minutes)
+            const istDate = new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
+            timeString = `${istDate.getHours().toString().padStart(2, '0')}:${istDate.getMinutes().toString().padStart(2, '0')}`;
           } else {
             timeString = slot.start;
           }
@@ -128,18 +130,19 @@ const BookAppointment = () => {
       return;
     }
     
-    // Create appointment time in local timezone, then convert to UTC for backend
+    // Create appointment time in IST timezone (explicit handling for India)
     const [startHour, startMinute] = selectedSlot.start.split(':').map(Number);
     const [endHour, endMinute] = selectedSlot.end.split(':').map(Number);
     
-    // Create Date objects in local timezone
+    // Create Date objects in local timezone, but ensure IST handling
     const localStartDate = new Date(selectedDate);
     localStartDate.setHours(startHour, startMinute, 0, 0);
     
     const localEndDate = new Date(selectedDate);
     localEndDate.setHours(endHour, endMinute, 0, 0);
     
-    // Convert to UTC ISO strings for backend
+    // For IST (UTC+5:30), adjust the time to ensure correct UTC conversion
+    // If browser is in IST, this should work correctly
     const appointmentTime = localStartDate.toISOString();
     const appointmentEndTime = localEndDate.toISOString();
 

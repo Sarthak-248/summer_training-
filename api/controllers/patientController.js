@@ -27,9 +27,9 @@ export const bookAppointment = async (req, res) => {
     const doctor = await Doctor.findById(doctorId);
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
 
-    // Parse appointment times - frontend sends UTC ISO strings
-    const start = new Date(appointmentTime); // ISO string with timezone info
-    const end = appointmentEndTime ? new Date(appointmentEndTime) : new Date(start.getTime() + 60 * 60 * 1000);
+    // Parse appointment times - ensure UTC handling
+    const start = new Date(appointmentTime + (appointmentTime.includes('Z') ? '' : 'Z'));
+    const end = appointmentEndTime ? new Date(appointmentEndTime + (appointmentEndTime.includes('Z') ? '' : 'Z')) : new Date(start.getTime() + 60 * 60 * 1000);
 
     // Check for time conflicts with existing appointments
     const conflictingAppointment = doctor.appointments.find(appt => 
