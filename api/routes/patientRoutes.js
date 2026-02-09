@@ -3,7 +3,7 @@ import { bookAppointment } from "../controllers/patientController.js";
 import { authenticate } from "../middlewares/authMiddleware.js";
 import {getMyAppointments} from "../controllers/patientController.js";
 import {postHistory} from "../controllers/patientController.js";
-import { analyzeReport } from "../controllers/patientController.js";
+import { analyzeReport, testPythonEnvironment } from "../controllers/patientController.js";
 import {addDoctorToFavorites} from "../controllers/patientController.js";
 import { getPatientProfile, updatePatientProfile } from "../controllers/patientController.js";
 import parser from "../middlewares/multerCloudinary.js";
@@ -27,5 +27,6 @@ router.post("/post-history",authenticate,postHistory);
 router.get("/profile", authenticate, getPatientProfile);
 router.put("/profile", authenticate, patientParser.single("photo"), updatePatientProfile);
 router.post("/analyze-report", reportParser.single("report"), analyzeReport);
+router.get("/test-python", testPythonEnvironment);
 
 export default router;

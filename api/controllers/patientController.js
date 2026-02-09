@@ -406,6 +406,72 @@ export const updatePatientProfile = async (req, res) => {
 
 
 
+export const testPythonEnvironment = async (req, res) => {
+  console.log("🧪 Testing Python environment...");
+
+  try {
+    // Check multiple possible Python commands
+    let pythonCmd;
+    const possiblePythonCmds = ['python3', 'python', '/usr/bin/python3', '/usr/bin/python'];
+    
+    for (const cmd of possiblePythonCmds) {
+      try {
+        const { stdout } = await promisify(exec)(`${cmd} --version`);
+        pythonCmd = cmd;
+        console.log("✅ Found working Python command:", cmd, stdout.trim());
+        break;
+      } catch (e) {
+        console.log("❌ Python command failed:", cmd, e.message);
+      }
+    }
+
+    if (!pythonCmd) {
+      return res.status(500).json({ error: "No working Python interpreter found" });
+    }
+
+    // Test basic Python execution
+    const testCommand = `${pythonCmd} -c "import sys; print('Python executable:', sys.executable); print('Python version:', sys.version)"`;
+    const { stdout: testOutput } = await promisify(exec)(testCommand);
+    
+    // Test ML library imports
+    const mlTestCommand = `${pythonCmd} -c "import pandas as pd; import joblib; import sklearn; print('ML libraries imported successfully')"`;
+    const { stdout: mlOutput } = await promisify(exec)(mlTestCommand);
+    
+    // Check if model files exist
+    const modelPath = path.resolve(__dirname, "../rf_model.joblib");
+    const encoderPath = path.resolve(__dirname, "../label_encoder.joblib");
+    const scriptPath = path.resolve(__dirname, "../ml/model_predictor.py");
+    
+    const filesExist = {
+      model: fs.existsSync(modelPath),
+      encoder: fs.existsSync(encoderPath),
+      script: fs.existsSync(scriptPath)
+    };
+
+    res.json({
+      success: true,
+      python: {
+        command: pythonCmd,
+        version: testOutput.trim(),
+        mlLibraries: mlOutput.trim()
+      },
+      files: {
+        modelPath,
+        encoderPath,
+        scriptPath,
+        exist: filesExist
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Python environment test failed:", error);
+    res.status(500).json({ 
+      error: "Python environment test failed", 
+      details: error.message 
+    });
+  }
+};
+
 export const analyzeReport = async (req, res) => {
   console.log("📥 Analyze report triggered");
   console.log("📄 Uploaded file info:", req.file);
@@ -491,7 +557,6 @@ export const analyzeReport = async (req, res) => {
     console.log("🌍 NODE_ENV:", process.env.NODE_ENV);
 
     // Check if files exist before running
-    const fs = require('fs');
     if (!fs.existsSync(scriptPath)) {
       console.error("❌ Python script not found:", scriptPath);
       return res.status(500).json({ error: "ML script not found" });
@@ -510,6 +575,17 @@ export const analyzeReport = async (req, res) => {
     } catch (pythonError) {
       console.error("❌ Python command failed:", pythonError.message);
       return res.status(500).json({ error: "Python environment not available", details: pythonError.message });
+    }
+
+    // Test Python script with a simple import
+    try {
+      const testScriptCommand = `${pythonCmd} -c "import sys; print('Python working'); print('Python path:', sys.executable)"`;
+      console.log("🧪 Testing Python script execution:", testScriptCommand);
+      const { stdout: testOutput } = await execAsync(testScriptCommand);
+      console.log("✅ Python script test output:", testOutput.trim());
+    } catch (scriptError) {
+      console.error("❌ Python script test failed:", scriptError.message);
+      return res.status(500).json({ error: "Python script execution failed", details: scriptError.message });
     }
 
     // Use the python interpreter
