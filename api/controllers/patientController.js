@@ -532,22 +532,23 @@ export const analyzeReport = async (req, res) => {
     let pythonCmd;
     const possiblePythonCmds = ['python3', 'python', '/usr/bin/python3', '/usr/bin/python'];
     
-    if (process.env.NODE_ENV === 'production') {
-      // Try to find working Python command
-      for (const cmd of possiblePythonCmds) {
-        try {
-          await execAsync(`${cmd} --version`);
-          pythonCmd = cmd;
-          console.log("✅ Found working Python command:", cmd);
-          break;
-        } catch (e) {
-          console.log("❌ Python command failed:", cmd, e.message);
-        }
+    // Always try production approach first (works in Docker/Render)
+    let foundPython = false;
+    for (const cmd of possiblePythonCmds) {
+      try {
+        await execAsync(`${cmd} --version`);
+        pythonCmd = cmd;
+        console.log("✅ Found working Python command:", cmd);
+        foundPython = true;
+        break;
+      } catch (e) {
+        console.log("❌ Python command failed:", cmd, e.message);
       }
-      if (!pythonCmd) {
-        return res.status(500).json({ error: "No working Python interpreter found" });
-      }
-    } else {
+    }
+    
+    // Fallback to local venv only if production commands fail
+    if (!foundPython) {
+      console.log("⚠️ No production Python found, trying local venv...");
       pythonCmd = `"${path.resolve(__dirname, "../../.venv/Scripts/python.exe")}"`;
     }
     
