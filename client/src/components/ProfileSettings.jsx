@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
@@ -8,6 +8,10 @@ const ProfileSettings = () => {
 
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
+  const retryCountRef = useRef(0);
+
+  const [doctorExists, setDoctorExists] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [allSlots, setAllSlots] = useState([]);
   const [newSlots, setNewSlots] = useState([
@@ -42,17 +46,26 @@ const ProfileSettings = () => {
 
       if (res.status === 404) {
         setDoctorExists(false);
-        setRetryCount(prev => prev + 1);
+        setRetryCount(prev => {
+          const newCount = prev + 1;
+          retryCountRef.current = newCount;
+          return newCount;
+        });
         return;
       }
 
       if (res.ok) {
         setDoctorExists(true);
-        setRetryCount(0); // Reset on success
+        setRetryCount(0);
+        retryCountRef.current = 0; // Reset on success
       }
     } catch (err) {
       console.error("Doctor check error:", err);
-      setRetryCount(prev => prev + 1);
+      setRetryCount(prev => {
+        const newCount = prev + 1;
+        retryCountRef.current = newCount;
+        return newCount;
+      });
     } finally {
       setLoading(false);
     }
@@ -76,7 +89,7 @@ const ProfileSettings = () => {
     // Also check periodically in case of same-tab changes
     const intervalId = setInterval(() => {
       const doctorId = localStorage.getItem('doctorId');
-      if (doctorId && !doctorExists && retryCount < MAX_RETRIES) {
+      if (doctorId && !doctorExists && retryCountRef.current < MAX_RETRIES) {
         console.log('[ProfileSettings] Found doctorId, re-checking existence');
         checkDoctor();
       }
