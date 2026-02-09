@@ -10,17 +10,18 @@ const storage = new CloudinaryStorage({
   },
 });
 
-// Separate storage for patient profiles
-const patientStorage = new CloudinaryStorage({
+// Separate storage for patient reports (images and PDFs)
+const reportStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'patient-profiles', // Cloudinary folder name for patient photos
-    allowed_formats: ['jpg', 'jpeg', 'png'],
+    folder: 'patient-reports', // Cloudinary folder name for patient reports
+    allowed_formats: ['jpg', 'jpeg', 'png', 'pdf'],
   },
 });
 
-const parser = multer({ storage });
+const patientParser = multer({ storage: patientStorage });
+const reportParser = multer({ storage: reportStorage });
 const patientParser = multer({ storage: patientStorage });
 
-export { patientParser };
+export { patientParser, reportParser };
 export default parser;
