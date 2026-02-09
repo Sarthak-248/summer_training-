@@ -6,8 +6,8 @@ import { showSuccessToast, showErrorToast } from '../utils/toastUtils';
 const ProfileSettings = () => {
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
-  const [doctorExists, setDoctorExists] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   const [allSlots, setAllSlots] = useState([]);
   const [newSlots, setNewSlots] = useState([
@@ -18,9 +18,19 @@ const ProfileSettings = () => {
      CHECK IF DOCTOR EXISTS
      ===================================================== */
   const checkDoctor = async () => {
+    // Prevent infinite retries
+    if (retryCount >= MAX_RETRIES) {
+      console.log('[ProfileSettings] Max retries reached, stopping checks');
+      setLoading(false);
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
       const res = await fetch(`/api/doctors/profile?t=${Date.now()}`, {
         headers: { 
@@ -32,14 +42,17 @@ const ProfileSettings = () => {
 
       if (res.status === 404) {
         setDoctorExists(false);
+        setRetryCount(prev => prev + 1);
         return;
       }
 
       if (res.ok) {
         setDoctorExists(true);
+        setRetryCount(0); // Reset on success
       }
     } catch (err) {
       console.error("Doctor check error:", err);
+      setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -63,7 +76,7 @@ const ProfileSettings = () => {
     // Also check periodically in case of same-tab changes
     const intervalId = setInterval(() => {
       const doctorId = localStorage.getItem('doctorId');
-      if (doctorId && !doctorExists) {
+      if (doctorId && !doctorExists && retryCount < MAX_RETRIES) {
         console.log('[ProfileSettings] Found doctorId, re-checking existence');
         checkDoctor();
       }

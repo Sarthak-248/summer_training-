@@ -143,14 +143,15 @@ app.get('/health', (req, res) => {
 
 // Public routes
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Protected routes - moved to top to prevent catch-all interference
+app.use("/api/doctors", doctorRoutes); // Doctor routes mounted first
+
 app.use("/api/appointments", patientRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/patient", patientRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/video-call", videoCallRoutes);
-
-// Protected routes
-app.use("/api/doctors", doctorRoutes); // Doctor routes mounted
 
 // Serve React build - in both development and production
 app.use(express.static(path.join(__dirname, "../client/dist")));
