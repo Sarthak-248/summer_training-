@@ -84,14 +84,13 @@ const ProfileSettings = () => {
 
     window.addEventListener('storage', handleStorageChange);
 
-    // Also check periodically in case of same-tab changes
+    // Also check periodically in case of same-tab changes (less frequent)
     const intervalId = setInterval(() => {
       const doctorId = localStorage.getItem('doctorId');
       if (doctorId && !doctorExists && retryCountRef.current < MAX_RETRIES) {
-        console.log('[ProfileSettings] Found doctorId, re-checking existence');
         checkDoctor();
       }
-    }, 2000);
+    }, 10000); // Check every 10 seconds instead of 2
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
