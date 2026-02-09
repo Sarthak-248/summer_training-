@@ -28,6 +28,7 @@ const reportStorage = new CloudinaryStorage({
   },
 });
 
+const parser = multer({ storage });
 const patientParser = multer({ storage: patientStorage });
 const reportParser = multer({ storage: reportStorage });
 
