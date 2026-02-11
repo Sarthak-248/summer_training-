@@ -43,6 +43,10 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"],
     credentials: true
   },
+  path: '/socket.io/',
+  transports: ['websocket', 'polling'],
+  pingInterval: 25000,
+  pingTimeout: 60000,
 });
 
 // Store socket mappings
@@ -158,6 +162,10 @@ app.use(express.static(path.join(__dirname, "../client/dist")));
 
 // Catch-all handler: serve React app for any unmatched route
 app.get("*", (req, res) => {
+  // Log any unusual requests for debugging
+  if (req.path.includes(':') || /^[a-f0-9]{24}/.test(req.path)) {
+    console.log('Unusual request path:', req.path, 'from:', req.get('user-agent') ? 'browser' : 'other');
+  }
   res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
 });
 

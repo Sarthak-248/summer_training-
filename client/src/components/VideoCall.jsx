@@ -39,13 +39,14 @@ const VideoCall = ({ appointmentId, onEnd }) => {
 
     // Initialize Socket
     socketRef.current = window.io(BACKEND_URL, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
       forceNew: true,
-      path: '/socket.io/'
+      path: '/socket.io/',
+      secure: window.location.protocol === 'https:'
     });
 
     console.log('Socket.IO initialized with URL:', BACKEND_URL);
