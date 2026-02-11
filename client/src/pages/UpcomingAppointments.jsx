@@ -213,7 +213,7 @@ const UpcomingAppointments = () => {
           <ul key={updateKey} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
             {filteredAppointments.map((appt) => (
               <li
-                key={appt._id}
+                key={appt.appointmentId}
                 className="group relative rounded-2xl p-[1px] bg-gradient-to-br from-white/10 via-white/5 to-transparent transition-all duration-500 hover:scale-[1.02] overflow-hidden"
                 style={{ minWidth: '320px' }}
               >

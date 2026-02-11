@@ -97,7 +97,7 @@ export const getMyAppointments = async (req, res) => {
           patientAppointments.push({
             doctorName: doctor.name,
             doctorSpecialty: doctor.specialty,
-            appointmentId: appt._id,
+            appointmentId: appt._id.toString(),
             patientName: appt.patientName,
             contact: appt.patientContact,
             date: appt.appointmentTime,

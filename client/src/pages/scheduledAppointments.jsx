@@ -440,7 +440,7 @@ const AppointmentCard = ({ appt, currentTime, loading, onAccept, onCancel }) => 
                          
                          {isReadyForCall && (
                             <button 
-                              onClick={() => window.open(`/video-call/${appt._id}`, '_blank')}
+                              onClick={() => window.open(`/video-call/${appt.appointmentId}`, '_blank')}
                               className="flex-1 py-2.5 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 animate-pulse flex items-center justify-center gap-2 transition-all"
                             >
                                <FaVideo /> Join Call

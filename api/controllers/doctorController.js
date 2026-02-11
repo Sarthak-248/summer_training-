@@ -488,6 +488,7 @@ export const getScheduledAppointments = async (req, res) => {
     if (!doctor) return res.status(404).json({ message: "Doctor not found" });
     const appointments = doctor.appointments.map(appt => ({
       ...appt.toObject(),
+      appointmentId: appt._id.toString(),
       amount: appt.amount || doctor.consultationFees || 500
     }));
     res.json({ appointments });
