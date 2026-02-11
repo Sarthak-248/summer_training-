@@ -23,12 +23,31 @@ const VideoCall = ({ appointmentId, onEnd }) => {
   };
 
   useEffect(() => {
+    // Validate appointmentId
+    if (!appointmentId) {
+      setStatus('Error: No appointment ID provided');
+      return;
+    }
+
+    console.log('VideoCall component initialized with appointmentId:', appointmentId);
+
     // Initialize Socket
-    socketRef.current = window.io(BACKEND_URL);
+    socketRef.current = window.io(BACKEND_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5
+    });
 
     // Setup Listeners BEFORE emitting join
     socketRef.current.on('connect', () => {
-      console.log("Socket connected");
+      console.log("Socket connected with ID:", socketRef.current.id);
+    });
+
+    socketRef.current.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setStatus('Connection error: ' + error);
     });
 
     socketRef.current.on('room-joined', () => {
@@ -38,21 +57,25 @@ const VideoCall = ({ appointmentId, onEnd }) => {
     });
 
     socketRef.current.on('user-connected', async (userId) => {
+      console.log('User connected:', userId);
       setStatus('User connected. Initiating call...');
       await createOffer(userId);
     });
 
     socketRef.current.on('offer', async ({ offer, senderId }) => {
+       console.log('Offer received from:', senderId);
        setStatus('Incoming call...');
        await handleOffer(offer, senderId);
     });
 
     socketRef.current.on('answer', async ({ answer }) => {
+       console.log('Answer received');
        setStatus('Call Connected');
        await handleAnswer(answer);
     });
 
     socketRef.current.on('ice-candidate', async ({ candidate }) => {
+      console.log('ICE candidate received');
       if (peerConnectionRef.current) {
         try {
           await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
@@ -60,6 +83,11 @@ const VideoCall = ({ appointmentId, onEnd }) => {
           console.error('Error adding received ice candidate', e);
         }
       }
+    });
+
+    socketRef.current.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
+      setStatus('Connection lost: ' + reason);
     });
 
     const startCall = async () => {
