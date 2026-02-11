@@ -39,12 +39,16 @@ const VideoCall = ({ appointmentId, onEnd }) => {
 
     // Initialize Socket
     socketRef.current = window.io(BACKEND_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
+      forceNew: true,
+      path: '/socket.io/'
     });
+
+    console.log('Socket.IO initialized with URL:', BACKEND_URL);
 
     // Setup Listeners BEFORE emitting join
     socketRef.current.on('connect', () => {
@@ -200,20 +204,30 @@ const VideoCall = ({ appointmentId, onEnd }) => {
   };
 
   const handleOffer = async (offer, senderId) => {
-    const pc = createPeerConnection();
-    await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
+    try {
+      const pc = createPeerConnection();
+      await pc.setRemoteDescription(offer);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
 
-    socketRef.current.emit('answer', {
-      answer,
-      roomId: appointmentId
-    });
+      socketRef.current.emit('answer', {
+        answer,
+        roomId: appointmentId
+      });
+    } catch (error) {
+      console.error('Error handling offer:', error);
+      setStatus('Error during WebRTC handshake: ' + error.message);
+    }
   };
 
   const handleAnswer = async (answer) => {
-     if(peerConnectionRef.current) {
-        await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+     try {
+        if(peerConnectionRef.current) {
+          await peerConnectionRef.current.setRemoteDescription(answer);
+        }
+     } catch (error) {
+        console.error('Error handling answer:', error);
+        setStatus('Error during WebRTC handshake: ' + error.message);
      }
   };
 
