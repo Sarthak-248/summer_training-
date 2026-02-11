@@ -6,15 +6,9 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom'],
   },
-  optimizeDeps: {
-    include: ['socket.io-client'],
-  },
   build: {
     rollupOptions: {
       external: ['socket.io-client'],
-    },
-    commonjsOptions: {
-      include: [/socket\.io-client/, /node_modules/],
     },
   },
   server: {

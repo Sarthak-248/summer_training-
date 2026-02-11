@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -32,8 +31,14 @@ const VideoCall = ({ appointmentId, onEnd }) => {
 
     console.log('VideoCall component initialized with appointmentId:', appointmentId);
 
+    // Check if Socket.IO is available
+    if (!window.io) {
+      setStatus('Error: Socket.IO not available');
+      return;
+    }
+
     // Initialize Socket
-    socketRef.current = io(BACKEND_URL, {
+    socketRef.current = window.io(BACKEND_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
