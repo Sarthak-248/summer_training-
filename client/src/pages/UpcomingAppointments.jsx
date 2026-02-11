@@ -52,20 +52,17 @@ const UpcomingAppointments = () => {
     }
   };
 
-  // Format date for display - convert UTC to IST
+  // Format date for display - use browser's local timezone
   const formatDate = (dateString) => {
     const utcDate = new Date(dateString);
     if (isNaN(utcDate.getTime())) return 'Invalid Date';
     
-    // Convert UTC to IST (add 5 hours 30 minutes)
-    const istDate = new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
-    
-    return `${istDate.toLocaleDateString('en-US', {
+    return `${utcDate.toLocaleDateString('en-US', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    })} at ${istDate.toLocaleTimeString('en-US', {
+    })} at ${utcDate.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,

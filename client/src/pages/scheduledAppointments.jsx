@@ -368,7 +368,7 @@ const AppointmentCard = ({ appt, currentTime, loading, onAccept, onCancel }) => 
                         </div>
                         <div>
                              <p className="text-[10px] uppercase text-white font-bold tracking-wider">Date</p>
-                             <p className="text-white text-sm font-semibold">{moment(appt.appointmentTime).format("MMM Do")}</p>
+                             <p className="text-white text-sm font-semibold">{moment(appt.appointmentTime).utcOffset('+05:30').format("MMM Do")}</p>
                         </div>
                     </div>
                     <div className="flex-1 bg-black/20 rounded-2xl p-3 border border-white/5 flex items-center gap-3">
@@ -377,7 +377,7 @@ const AppointmentCard = ({ appt, currentTime, loading, onAccept, onCancel }) => 
                         </div>
                         <div>
                              <p className="text-[10px] uppercase text-white font-bold tracking-wider">Time</p>
-                             <p className="text-white text-sm font-semibold">{moment(appt.appointmentTime).format("h:mm A")}</p>
+                             <p className="text-white text-sm font-semibold">{moment(appt.appointmentTime).utcOffset('+05:30').format("h:mm A")}</p>
                         </div>
                     </div>
                 </div>
